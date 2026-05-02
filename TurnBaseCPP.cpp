@@ -2,10 +2,7 @@
 #include <iomanip>
 using namespace std;
 
-
-
-
-struct item
+struct Item
 {
     int id_item;
     string nama_item; 
@@ -14,7 +11,7 @@ struct item
     
 };
 
-struct monster{
+struct Monster{
     int id_monster; 
     string monster_name;
     int monster_hp;
@@ -22,7 +19,7 @@ struct monster{
 };
 
 
-struct player
+struct Player
 {
     string nama;
     string origin;
@@ -46,32 +43,33 @@ struct player
 
     int vigor; 
     int mind;
-    int str; 
-    int dex; 
-    int arc; 
-    int intl;
+    int dexterity;
+    int strength; 
+    int intelegence;
 
 };
 
 
 
-player p;
+Player p;
 
-void maxhp(player &p){
+void maxHp(Player &p){
     p.hp = 100 + (p.vigor*10);
     if(p.maxhp < p.hp){
         p.hp = p.maxhp;
     }
 }
 
-void maxmana(player &p){
+void maxMana(Player &p){
     p.mana = 100 + (p.mana*5);
     if(p.maxmana < p.mana){
         p.mana = p.mana;
     }
 }
 
-int menu(){
+
+
+int menuGame(){
     int pilll; 
 
     cout << setfill('=')<< setw(33) <<"="<<endl;
@@ -86,11 +84,15 @@ int menu(){
     
 }
 
-void mc(player &p){
+void Menu_utama(){
 
 }
 
-void game(){
+void mC(Player &p){
+
+}
+
+void mame(){
 
 }
 
@@ -101,7 +103,7 @@ int main(){
 
     while (ulang = true)
     {
-        int pilih = menu();
+        int pilih = Menu();
     
         if(pilih == 1){
             system("cls");
