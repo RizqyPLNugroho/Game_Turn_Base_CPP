@@ -22,12 +22,25 @@ struct Equipment {
     int upgradeLevel;
 };
 
+Equipment weaponList[10]{
+    {"str001", "Hammer", "strength", 100, "B", 0},
+    {"str002", "Great Sword", "strength", 200, "A", 0},
+    {"str003", "Claymore", "strength", 80, "C", 0},
+    {"dex001", "Dagger", "dex", 100, "C", 0},
+    {"str001", "Claw", "dex", 120, "B", 0},
+    {"str001", "Katana", "dex", 90, "A", 0},
+    {"str001", "Spell Book", "inteligence", 50, "B", 0},
+    {"str001", "Wizard wand", "inteligence", 60, "A", 0},
+    {"str001", "Magic Wand", "inteligence", 40, "A", 0}
+};
+
 struct Skill {
     string codeSkill;
     string namaSkill;
     string scalingTipe;
     int damageSkill;
     string scaling;
+    int manaCost;
 };
 
 struct Player {
@@ -42,9 +55,11 @@ struct Player {
     int maxHp;
     int mana;
     int maxMana;
-    
+    int maxExp;
     int baseDamage;
     
+    int poinLevelUp;
+
     bool isAlive = true;
     //untuk mengecek player menggunakan weapon atau tidak
     bool usingWeapon = false;
@@ -77,15 +92,21 @@ struct Monster{
     string codeMonster; 
     string monsterName;
     int monsterHp;
+    int maxHp;
     int monsterMana;
+    int monsterExpDrop;
+    int monsterGoldDrop;
+    int monsterDamage;
+    bool isDefending = false;
+    bool isAlive = true;
 };
 
 Monster monsterList[5] = {
-    {"GBL001", "Goblin", 100, 20},
-    {"SKL001", "Skeleton", 80, 50},
-    {"SKM001", "Skeleton Mage", 60, 100},
-    {"ORC001", "Orc", 150, 30},
-    {"DMN001", "Demon", 200, 80}
+    {"GBL001", "Goblin", 100, 100, 20, 100, 100, 20},
+    {"SKL001", "Skeleton", 80, 80, 50, 120, 80, 10},
+    {"SKM001", "Skeleton Mage", 60, 60, 100, 150, 150 ,70},
+    {"ORC001", "Orc", 150, 150, 30, 200, 200, 50},
+    {"DMN001", "Demon", 200, 200, 80, 300, 300, 80}
 };
 
 Item shopItem[2] = {
@@ -128,6 +149,8 @@ void unequipWeapon(Player &plyr);
 // sistem game
 int weaponScaling(Equipment weapon, Player &plyr); //weapon scaling
 int skillScaling(Skill Spell, Player &plyr); //skill scaling
+void skillList(Player &plyr, Monster &monster, Skill &spell);
+
 
 void shopMenu();
 void buyItem(Player &plyr, int opsi);
@@ -137,7 +160,14 @@ void blacksmithMenu();
 void upgradeWeapon(Player &plyr);
 
 void enterFloor(Player &plyr);
-void battleMonster(Player &plyr, Monster monster);
+void battleMonster(Player &plyr, Monster monster, Skill Spell);
+void monsterAction(Player &plyr, Monster &monster);
+
+void useItem(Player &plyr);
+void levelUp(Player &plyr);
+void defeatHandling(Player &plyr);
+
+Monster randomMonster();
 
 int main() {
     int opsiMenu;
@@ -267,7 +297,9 @@ void initPlayer(Player &plyr, string nama, int classInput) {
     plyr.nama = nama;
     plyr.lvl = 1;
     plyr.exp = 0;
+    plyr.maxExp = 1000;
     plyr.gold = 1000;
+
 
     plyr.inventoryCount = 0;
     plyr.equipmentCount = 0;
@@ -285,13 +317,23 @@ void initPlayer(Player &plyr, string nama, int classInput) {
     Item potionMana = shopItem[1];
     potionMana.countItem = 3;
 
-    Equipment shortSword = {"SW001", "Short Sword", "strength", 20, "C", 0};
+    Equipment starterWeapon;
+
+switch(classInput) {
+    case 1: starterWeapon = weaponList[0]; break;
+    case 2: starterWeapon = weaponList[3]; break;
+    case 3: starterWeapon = weaponList[6]; break;
+    case 4: starterWeapon = weaponList[1]; break;
+    case 5: starterWeapon = weaponList[5]; break;
+}
+
+plyr.equip[plyr.equipmentCount++] = starterWeapon;
+
 
     plyr.inv[plyr.inventoryCount++] = potionHp;
     plyr.inv[plyr.inventoryCount++] = potionMana;
 
-    plyr.equip[plyr.equipmentCount++] = shortSword;
-
+    
     // equip weapon otomatis
     plyr.equippedWeaponIndex = 0;
     plyr.usingWeapon = true;
@@ -304,11 +346,12 @@ void applyClass(Player &plyr, int classInput) {
         case 1:
             plyr.classType = "Knight";
             plyr.vigor = 8;
-            plyr.strength = 6;
+            plyr.strength = 99;
             plyr.def = 7;
             plyr.dexterity = 3;
             plyr.inteligence = 2;
             plyr.mind = 3;
+            
             break;
         case 2:
             plyr.classType = "Ranger";
@@ -352,27 +395,29 @@ void applyClass(Player &plyr, int classInput) {
 void addClassSkill(Player &plyr) {
     plyr.skillCount = 0;
     if(plyr.classType == "Knight") {
-        Skill shieldBash = {"SK001", "Shield Bash", "strength", 30, "C"};
+        Skill shieldBash = {"SK001", "Shield Bash", "strength", 30, "C", 15};
 
         plyr.skill[plyr.skillCount++] = shieldBash;
     } else if (plyr.classType == "Ranger") {
-        Skill piercingArrow = {"SK002", "Piercing Arrow", "dex", 35, "B"};
+        Skill piercingArrow = {"SK002", "Piercing Arrow", "dex", 35, "B", 20};
 
         plyr.skill[plyr.skillCount++] = piercingArrow;
     } else if (plyr.classType == "Mage") {
-        Skill fireBall = {"SK003", "Fire Ball", "inteligence", 50, "A"};
+        Skill fireBall = {"SK003", "Fire Ball", "inteligence", 50, "A", 5};
 
         plyr.skill[plyr.skillCount++] = fireBall;
     } else if (plyr.classType == "Warrior") {
-        Skill berserkSlash = {"SK004", "Berserk Slash", "strength", 45, "B"};
+        Skill berserkSlash = {"SK004", "Berserk Slash", "strength", 45, "B", 20};
 
         plyr.skill[plyr.skillCount++] = berserkSlash;
     } else if (plyr.classType == "Assassin") {
-        Skill shadowStrike = {"SK005", "Shadow Strike", "dex", 40, "B"};
+        Skill shadowStrike = {"SK005", "Shadow Strike", "dex", 40, "B", 20 };
 
         plyr.skill[plyr.skillCount++] = shadowStrike;
     }
 }
+
+
 
 //sistem scaling weapon
 int weaponScaling(Equipment weapon, Player &plyr){  
@@ -481,12 +526,65 @@ void listWeapon(Player &plyr) {
             cout << " (Equipped)";
         }
         cout << endl;
-        cout << "  Damage  : " << plyr.equip[i].damageEquipment << endl;
-        cout << "  Scaling : " << plyr.equip[i].scaling << " | " << plyr.equip[i].scalingTipe << endl;
-        cout << "  Level : " << plyr.equip[i].upgradeLevel << endl;
-        cout << "  Price   : " << sellPrice << " Gold" << endl;
+        cout << "  Damage   : " << plyr.equip[i].damageEquipment << endl;
+        cout << "  Scaling  : " << plyr.equip[i].scaling << " | " << plyr.equip[i].scalingTipe << endl;
+        cout << "  Level    : " << plyr.equip[i].upgradeLevel << endl;
+        cout << "  Price    : " << sellPrice << " Gold" << endl;
         cout << "----------------------------------------" << endl;
     }
+}
+
+void skillList(Player &plyr, Monster &monster, Skill &spell){
+int pilih;
+
+    cout << "========================================" << endl;
+    cout << "|            List Skill                |" << endl;
+    cout << "========================================" << endl;
+
+    for(int i = 0; i < plyr.skillCount; i++) {
+        cout << "[" << i+1 << "] " << plyr.skill[i].namaSkill
+             << " | Base Damage: " << plyr.skill[i].damageSkill
+             << " | Mana Cost: " << plyr.skill[i].manaCost
+             << endl;
+    }
+
+    cout << "========================================" << endl;
+    cout << "Pilih skill: ";
+    cin >> pilih;
+
+    pilih--;
+    
+    if(pilih < 0 || pilih >= plyr.skillCount){
+        cout << "Skill tidak valid!" << endl;
+        return;
+    }
+
+    Skill skillDipakai = plyr.skill[pilih];
+    if(plyr.mana < spell.manaCost){
+        cout << "Mana tidak cukup!" << endl;
+        return;
+    }
+
+    // hitung damage skill
+    int damageSkill = skillDipakai.damageSkill + skillScaling(skillDipakai, plyr);
+
+    if(monster.isDefending){
+        damageSkill /= 2;
+        cout << monster.monsterName << " sedang bertahan! Damage skill berkurang!" << endl;
+    }
+
+    plyr.mana -= plyr.skill[pilih].manaCost;
+    monster.monsterHp -= damageSkill;
+
+    if(monster.monsterHp < 0) monster.monsterHp = 0;
+    system("cls");
+    cout << "========================================" << endl;
+    cout << plyr.nama << " menggunakan skill " << skillDipakai.namaSkill << endl;
+    cout << "Damage diberikan: " << damageSkill << endl;
+    cout << "menggunakan mana sebesar : " << plyr.skill[pilih].manaCost << endl;
+    cout << "========================================" << endl;
+    system("pause");
+    system("cls");
 }
 
 // show equipment
@@ -598,6 +696,7 @@ void unequipWeapon(Player &plyr){
     cout << "========================================" << endl;
 }
 
+
 void townMenu() {
     system("cls");
     int opsiTown;
@@ -685,9 +784,10 @@ void enterDungeon() {
         cout << "|   [2] About The Monster              |" << endl;
         cout << "|   [3] Inventory                      |" << endl;
         cout << "|   [4] Equipment                      |" << endl;
-        cout << "|   [5] Level Up                       |" << endl;
-        cout << "|   [6] Save Game                      |" << endl;
-        cout << "|   [7] Return Town                    |" << endl;
+        cout << "|   [5] Show Stat                      |" << endl;
+        cout << "|   [6] Level Up                       |" << endl;
+        cout << "|   [7] Save Game                      |" << endl;
+        cout << "|   [8] Return Town                    |" << endl;
         cout << "========================================" << endl;
         cout << "Masukkan pilihan : ";
         cin >> opsiDungeon;
@@ -718,17 +818,24 @@ void enterDungeon() {
                 break;
             case 5:
                 system("cls");
-
+                showStats(plyr);
                 // Code for level up
-
+                ulangDungeon = backChildMenu();
                 break;
             case 6:
                 system("cls");
-                
+                levelUp(plyr);
+                ulangDungeon = backChildMenu();
                 // Code for save game
 
                 break;
             case 7:
+                system("cls");
+                
+                // Code for save game
+
+            break;
+            case 8:
                 ulangDungeon = false;
                 break;
             default:
@@ -886,8 +993,7 @@ void sellWeapon(Player &plyr) {
         return;
     }
 
-    if (pilih == plyr.equippedWeaponIndex &&
-        plyr.equipmentCount == 1) {
+    if (pilih == plyr.equippedWeaponIndex && plyr.equipmentCount == 1) {
         cout << "Weapon terakhir tidak bisa dijual!" << endl;
         return;
     }
@@ -1023,13 +1129,57 @@ void upgradeWeapon(Player &plyr) {
     cout << "========================================" << endl;
 }
 
+
+Monster randomMonster(){
+    int idx = rand() % 5;
+    Monster monster = monsterList[idx];
+    monster.maxHp = monster.monsterHp;
+    monster.isDefending = false;
+    return monster;
+}
+
+void monsterAction(Player &plyr, Monster &monster){
+    int inputMonster = 0; 
+    inputMonster = rand() % 100;
+
+    if(monster.monsterHp < monster.maxHp * 0.4) {
+            if(inputMonster < 40) {
+                monster.isDefending = true;
+                cout << "========================================" << endl;
+                cout << monster.monsterName << " bertahan!" << endl;
+                cout << "========================================" << endl;
+                system("pause");
+                system("cls");
+                return;
+        }
+    }
+
+    int damage = monster.monsterDamage;
+
+    if(plyr.isDefending == true){
+        damage = (monster.monsterDamage/2)-plyr.def;
+    } 
+    
+    if(damage < 0) damage = 0;
+    cout << "========================================" << endl;
+    cout << monster.monsterName << " menyerang " << plyr.nama << endl;
+    cout << plyr.nama << " Menerima Damage sebesar " << damage << endl; 
+    cout << "========================================" << endl;
+
+    plyr.hp -= damage;
+
+    system("pause");
+    system("cls");
+}
+
 void enterFloor(Player &plyr) {
     srand(time(0));
 
     int randomMonster = rand() % 5;
 
     Monster monster = monsterList[randomMonster];
-
+    Skill spell;
+    monster.monsterHp += plyr.lvl*5;
     cout << "========================================" << endl;
     cout << "Monster muncul!" << endl;
     cout << "Nama Monster : " << monster.monsterName << endl;
@@ -1039,13 +1189,147 @@ void enterFloor(Player &plyr) {
     system("pause");
     system("cls");
 
-    battleMonster(plyr, monster);
+    battleMonster(plyr, monster, spell);
 }
 
-void battleMonster(Player &plyr, Monster monster) {
-    int pilihan;
+void levelUp(Player &plyr){
+    int inputLevelUp;
 
+    // tolong buatkan agar bisa menampilkan pesan konfirmasi
+    if(plyr.poinLevelUp <=0){
+        cout << "poin anda kurang untuk level up" << endl;
+        return;
+    }
+    plyr.lvl += plyr.poinLevelUp;
+    plyr.maxExp += plyr.maxExp*0.1;
+    while (plyr.poinLevelUp >= 1)
+    {
+        cout << "========================================" << endl;
+        cout << plyr.nama << " dapat menaikan level stat "<< endl;
+        cout << "memiliki " << plyr.poinLevelUp << " poin stat yang bisa dinaikan" << endl;
+        cout << "========================================" << endl;
+        cout << "[1] Vigor" << endl;
+        cout << "[2] Mind" << endl;
+        cout << "[3] Def" << endl;
+        cout << "[4] Strength" << endl;
+        cout << "[5] Dexerity" << endl;
+        cout << "[6] Intelegence" << endl;
+        cout << "========================================" << endl;
+        cout << "pilih stat yang ingin anda naikan : ";
+        cin >> inputLevelUp;
+        cout << "----------------------------------------" << endl;
+        switch (inputLevelUp)
+            {
+            case 1: plyr.vigor += 1; break;
+            case 2: plyr.mind += 1; break;
+            case 3: plyr.def += 1; break;
+            case 4: plyr.strength += 1; break;
+            case 5: plyr.dexterity += 1; break;            
+            case 6: plyr.inteligence += 1; break;
+            default: cout << "Pilihan tidak valid!" << endl; continue;
+            }
+        plyr.poinLevelUp -= 1;
+    }
+    recalcStat(plyr);
+    cout << "Stat berhasil ditingkatkan!" << endl;
+}
+
+void useItem(Player &plyr){
+ int potionIndex[50];
+    int potionCount = 0;
+
+    cout << "========================================" << endl;
+    cout << "|            LIST POTION               |" << endl;
+    cout << "========================================" << endl;
+
+    // cari potion dalam inventory
+    for(int i = 0; i < plyr.inventoryCount; i++) {
+        if(plyr.inv[i].tipeItem == "heal" || plyr.inv[i].tipeItem == "mana") {
+            potionIndex[potionCount] = i;
+            cout << "[" << potionCount + 1 << "] " 
+                 << plyr.inv[i].namaItem 
+                 << " x" << plyr.inv[i].countItem << endl;
+            potionCount++;
+        }
+    }
+
+    if(potionCount == 0) {
+        cout << "Tidak ada potion di inventory!" << endl;
+        return;
+    }
+
+    cout << "========================================" << endl;
+    cout << "[0] Cancel" << endl;
+    cout << "Pilih potion: ";
+
+    int pilih;
+    cin >> pilih;
+
+    if(pilih == 0) return;
+
+    pilih--;
+
+    if(pilih < 0 || pilih >= potionCount) {
+        cout << "Pilihan tidak valid!" << endl;
+        return;
+    }
+
+    int idx = potionIndex[pilih];
+    Item &potion = plyr.inv[idx];
+
+    system("cls");
+    if(potion.tipeItem == "heal") {
+        int healAmount = 50;
+        plyr.hp += healAmount;
+        if(plyr.hp > plyr.maxHp) plyr.hp = plyr.maxHp;
+
+        cout << "========================================" << endl;
+        cout << plyr.nama << " memakai " << potion.namaItem << endl;
+        cout << "HP + " << healAmount << endl;
+        cout << "HP sekarang: " << plyr.hp << "/" << plyr.maxHp << endl;
+        cout << "========================================" << endl;
+    } else if(potion.tipeItem == "mana") {
+        int manaAmount = 40;
+        plyr.mana += manaAmount;
+        if(plyr.mana > plyr.maxMana) plyr.mana = plyr.maxMana;
+
+        cout << "========================================" << endl;
+        cout << plyr.nama << " memakai " << potion.namaItem << endl;
+        cout << "Mana + " << manaAmount << endl;
+        cout << "Mana sekarang: " << plyr.mana << "/" << plyr.maxMana << endl;
+        cout << "========================================" << endl;
+    }
+
+    potion.countItem--;
+
+    cout << "Sisa " << potion.namaItem << " : " << potion.countItem << endl;
+
+    if(potion.countItem == 0) {
+        for(int j = idx; j < plyr.inventoryCount - 1; j++) {
+            plyr.inv[j] = plyr.inv[j + 1];
+        }
+        plyr.inventoryCount--;
+    }
+    plyr.isDefending = true;
+}
+
+void defeatHandling(Player &plyr){
+    cout << "=========================================" << endl;
+    cout << "| " <<plyr.nama << " kalah dalam battle! |" << endl;
+    cout << "Penalty: Kehilangan EXP dan gold farming! |" << endl;
+    cout << "=========================================" << endl;
+
+    plyr.exp = 0;
+    plyr.gold /= 2;
+
+    recalcStat(plyr);
+}
+
+void battleMonster(Player &plyr, Monster monster, Skill Spell) {
+    int pilihan;
+    
     do {
+        int damagePlayer = plyr.weaponDamage;
         cout << "========================================" << endl;
         cout << "         TURN BASED BATTLE              " << endl;
         cout << "========================================" << endl;
@@ -1063,8 +1347,8 @@ void battleMonster(Player &plyr, Monster monster) {
         cout << "[1] Attack" << endl;
         cout << "[2] Skill" << endl;
         cout << "[3] Defend" << endl;
-        cout << "[4] Use Potion HP" << endl;
-        cout << "[5] Use Potion Mana" << endl;
+        cout << "[4] Use Potion" << endl;
+        cout << "[5] Equip" << endl;
         cout << "[6] Run" << endl;
         cout << "========================================" << endl;
 
@@ -1074,25 +1358,100 @@ void battleMonster(Player &plyr, Monster monster) {
         system("cls");
 
         switch(pilihan) {
-            case 1:
+            case 1:    
+                if(monster.isDefending == true){
+                    damagePlayer /= 2;
+                }
+                cout << "========================================" << endl;
+                cout << plyr.nama << " menyerang " << monster.monsterName << endl;
+                cout << plyr.nama << " memberikan " << damagePlayer << " damage " << endl;
+                cout << "========================================" << endl;
+
+                monster.monsterHp = monster.monsterHp -  damagePlayer;
+                system("pause");
+                system("cls");
+                
                 break;
             case 2:
+                skillList(plyr, monster, Spell);
+                break;
+            case 3:
                 plyr.isDefending = true;
                 cout << plyr.nama << " bersiap bertahan!" << endl;
                 break;
-            case 3:
-                break;
             case 4:
+                useItem(plyr);
+                system("pause");
+                system("cls");
                 break;
             case 5:
+                showEquipment(plyr);
+                system("pause");
+                system("cls");
                 break;
             case 6:
+                return;
                 break;
             default:
                 cout << "Pilihan tidak valid!" << endl;
                 continue;
         }
 
+        if(monster.monsterHp <= 0){
+            cout << "========================================" << endl;
+            cout << monster.monsterName << " telah mati" << endl;
+            cout << "EXP+ = " << monster.monsterExpDrop << endl;
+            cout << "Gold+ = " << monster.monsterGoldDrop << endl;
+            cout << "========================================" << endl;
+            plyr.exp += monster.monsterExpDrop;
+            plyr.gold += monster.monsterGoldDrop;
+            monster.isAlive = false;
+
+            if(plyr.exp > plyr.maxExp){
+                system("cls");
+                cout << "========================================" << endl;
+                cout << "Level Naik" <<endl; 
+                plyr.poinLevelUp++;
+                cout << "poin yang dimiliki saat ini : " << plyr.poinLevelUp << "poin" << endl;
+                cout << "========================================" << endl;
+                plyr.exp = 0;
+            }
+
+            system("pause");
+            system("cls");
+
+            monster = randomMonster();
+            monster.maxHp += plyr.lvl * 5;
+            monster.maxHp = monster.monsterHp;
+
+            cout << "========================================" << endl;
+            cout << "Monster muncul!" << endl;
+            cout << "Nama Monster : " << monster.monsterName << endl;
+            cout << "HP Monster   : " << monster.monsterHp << endl;
+            cout << "========================================" << endl;
+
+
+            system("pause");
+            system("cls");
+
+
+            continue;
+        }
+        
+        monsterAction(plyr, monster);
+        
+        if(plyr.hp <= 0){
+            plyr.hp = 0;
+            cout << "========================================" << endl;
+            cout << plyr.nama << " telah dikalahkan oleh " << monster.monsterName << "!" << endl;
+            cout << "========================================" << endl;
+
+            system("pause");
+            system("cls");
+
+            defeatHandling(plyr);
+            return;
+        }
         // return battle's code 
     } while(true);
 }
