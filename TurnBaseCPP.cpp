@@ -1,6 +1,6 @@
 #include <iostream>
-#include <iomanip>
 #include <ctime>
+#include <fstream>
 
 using namespace std;
 
@@ -20,18 +20,7 @@ struct Equipment {
     int damageEquipment;
     string scaling;
     int upgradeLevel;
-};
-
-Equipment weaponList[10]{
-    {"str001", "Hammer", "strength", 100, "B", 0},
-    {"str002", "Great Sword", "strength", 200, "A", 0},
-    {"str003", "Claymore", "strength", 80, "C", 0},
-    {"dex001", "Dagger", "dex", 100, "C", 0},
-    {"str001", "Claw", "dex", 120, "B", 0},
-    {"str001", "Katana", "dex", 90, "A", 0},
-    {"str001", "Spell Book", "inteligence", 50, "B", 0},
-    {"str001", "Wizard wand", "inteligence", 60, "A", 0},
-    {"str001", "Magic Wand", "inteligence", 40, "A", 0}
+    int price;
 };
 
 struct Skill {
@@ -41,6 +30,7 @@ struct Skill {
     int damageSkill;
     string scaling;
     int manaCost;
+    int price;
 };
 
 struct Player {
@@ -101,17 +91,47 @@ struct Monster{
     bool isAlive = true;
 };
 
+Equipment weaponList[15]{
+    {"str001", "Hammer", "strength", 100, "B", 0, 1500},
+    {"str002", "Great Sword", "strength", 200, "A", 0, 3000},
+    {"str003", "Claymore", "strength", 80, "C", 0, 1200},
+    {"dex001", "Dagger", "dex", 100, "C", 0, 1400},
+    {"dex002", "Claw", "dex", 120, "B", 0, 1800},
+    {"dex003", "Katana", "dex", 90, "A", 0, 2500},
+    {"int001", "Spell Book", "inteligence", 50, "B", 0, 1300},
+    {"int002", "Wizard Wand", "inteligence", 60, "A", 0, 2000},
+    {"int003", "Magic Wand", "inteligence", 40, "A", 0, 1700},
+
+    {"str004", "Dragon Slayer", "strength", 250, "A", 0, 5000},
+    {"dex004", "Twin Blade", "dex", 170, "A", 0, 4200},
+    {"int004", "Ancient Staff", "inteligence", 150, "A", 0, 4500},
+    {"mix001", "Blood Sword", "strength", 180, "B", 0, 3800},
+    {"mix002", "Shadow Dagger", "dex", 160, "A", 0, 4000},
+    {"mix003", "Dark Grimoire", "inteligence", 200, "S", 0, 6000}
+};
+
+Skill shopSkill[8] = {
+    {"SK006", "Meteor Strike", "strength", 80, "A", 30, 2000},
+    {"SK007", "Whirlwind", "strength", 60, "B", 20, 1500},
+    {"SK008", "Rapid Shot", "dex", 70, "A", 25, 1800},
+    {"SK009", "Poison Slash", "dex", 65, "B", 20, 1600},
+    {"SK010", "Thunder Bolt", "inteligence", 90, "A", 35, 2500},
+    {"SK011", "Ice Spear", "inteligence", 75, "B", 25, 1800},
+    {"SK012", "Dark Explosion", "inteligence", 120, "S", 50, 4000},
+    {"SK013", "Execution", "strength", 110, "S", 45, 3500}
+};
+
 Monster monsterList[5] = {
-    {"GBL001", "Goblin", 100, 100, 20, 100, 100, 20},
-    {"SKL001", "Skeleton", 80, 80, 50, 120, 80, 10},
-    {"SKM001", "Skeleton Mage", 60, 60, 100, 150, 150 ,70},
-    {"ORC001", "Orc", 150, 150, 30, 200, 200, 50},
-    {"DMN001", "Demon", 200, 200, 80, 300, 300, 80}
+    {"gbl001", "Goblin", 100, 100, 20, 100, 100, 20},
+    {"skl001", "Skeleton", 80, 80, 50, 120, 80, 10},
+    {"skm001", "Skeleton Mage", 60, 60, 100, 150, 150 ,70},
+    {"orc001", "Orc", 150, 150, 30, 200, 200, 50},
+    {"dmn001", "Demon", 200, 200, 80, 300, 300, 80}
 };
 
 Item shopItem[2] = {
-    {"HP001", "Potion HP", "heal", 1, 500},
-    {"MP001", "Potion Mana", "mana", 1, 1000}
+    {"hp001", "Potion HP", "heal", 1, 500},
+    {"mp001", "Potion Mana", "mana", 1, 1000}
 };
 
 Player plyr;
@@ -141,19 +161,25 @@ void enterDungeon();
 void aboutMonster();
 void showInventory(Player &plyr);
 
-void showEquipment(Player &plyr);
+void equipmentMenu(Player &plyr);
 void listWeapon(Player &plyr);
 void equipWeapon(Player &plyr);
 void unequipWeapon(Player &plyr);
 
+void searchWeapon(Player &plyr);
+void sortWeaponIndex(Player &plyr, int idx[], int opsiSort);
+void showAllWeapon(Player &plyr);
+
 // sistem game
 int weaponScaling(Equipment weapon, Player &plyr); //weapon scaling
 int skillScaling(Skill Spell, Player &plyr); //skill scaling
-void skillList(Player &plyr, Monster &monster, Skill &spell);
-
+void skillList(Player &plyr, Monster &monster);
 
 void shopMenu();
 void buyItem(Player &plyr, int opsi);
+void buyWeapon(Player &plyr);
+void buySkill(Player &plyr);
+void sellItem(Player &plyr);
 void sellWeapon(Player &plyr);
 
 void blacksmithMenu();
@@ -167,9 +193,15 @@ void useItem(Player &plyr);
 void levelUp(Player &plyr);
 void defeatHandling(Player &plyr);
 
+void saveGame(Player &plyr);
+void loadGame(Player &plyr);
+bool showSaveFiles();
+
 Monster randomMonster();
 
 int main() {
+    srand(time(0));
+
     int opsiMenu;
 
     do {
@@ -194,9 +226,8 @@ int main() {
                 break;
             case 2:
                 system("cls");
-
-                //
-                
+                loadGame(plyr);
+                ulangHome = true;
                 break;
             case 3:
                 ulangHome = false;
@@ -285,6 +316,8 @@ void startGame() {
     cout << "|            Karakter dibuat           |" << endl;
     cout << "========================================" << endl; 
     showStats(plyr);
+    showInventory(plyr);
+    equipmentMenu(plyr);
     cout << "========================================" << endl; 
 
     cout << "\nTekan enter untuk melanjutkan :" << endl;
@@ -300,6 +333,10 @@ void initPlayer(Player &plyr, string nama, int classInput) {
     plyr.maxExp = 1000;
     plyr.gold = 1000;
 
+    plyr.hp = 0;
+    plyr.maxHp = 0;
+    plyr.mana = 0;
+    plyr.maxMana = 0;
 
     plyr.inventoryCount = 0;
     plyr.equipmentCount = 0;
@@ -319,20 +356,19 @@ void initPlayer(Player &plyr, string nama, int classInput) {
 
     Equipment starterWeapon;
 
-switch(classInput) {
-    case 1: starterWeapon = weaponList[0]; break;
-    case 2: starterWeapon = weaponList[3]; break;
-    case 3: starterWeapon = weaponList[6]; break;
-    case 4: starterWeapon = weaponList[1]; break;
-    case 5: starterWeapon = weaponList[5]; break;
-}
+    switch(classInput) {
+        case 1: starterWeapon = weaponList[0]; break;
+        case 2: starterWeapon = weaponList[3]; break;
+        case 3: starterWeapon = weaponList[6]; break;
+        case 4: starterWeapon = weaponList[1]; break;
+        case 5: starterWeapon = weaponList[5]; break;
+    }
 
-plyr.equip[plyr.equipmentCount++] = starterWeapon;
+    plyr.equip[plyr.equipmentCount++] = starterWeapon;
 
 
     plyr.inv[plyr.inventoryCount++] = potionHp;
     plyr.inv[plyr.inventoryCount++] = potionMana;
-
     
     // equip weapon otomatis
     plyr.equippedWeaponIndex = 0;
@@ -346,7 +382,7 @@ void applyClass(Player &plyr, int classInput) {
         case 1:
             plyr.classType = "Knight";
             plyr.vigor = 8;
-            plyr.strength = 99;
+            plyr.strength = 7;
             plyr.def = 7;
             plyr.dexterity = 3;
             plyr.inteligence = 2;
@@ -395,29 +431,27 @@ void applyClass(Player &plyr, int classInput) {
 void addClassSkill(Player &plyr) {
     plyr.skillCount = 0;
     if(plyr.classType == "Knight") {
-        Skill shieldBash = {"SK001", "Shield Bash", "strength", 30, "C", 15};
+        Skill shieldBash = {"SK001", "Shield Bash", "strength", 30, "C", 15, 0};
 
         plyr.skill[plyr.skillCount++] = shieldBash;
     } else if (plyr.classType == "Ranger") {
-        Skill piercingArrow = {"SK002", "Piercing Arrow", "dex", 35, "B", 20};
+        Skill piercingArrow = {"SK002", "Piercing Arrow", "dex", 35, "B", 20, 0};
 
         plyr.skill[plyr.skillCount++] = piercingArrow;
     } else if (plyr.classType == "Mage") {
-        Skill fireBall = {"SK003", "Fire Ball", "inteligence", 50, "A", 5};
+        Skill fireBall = {"SK003", "Fire Ball", "inteligence", 50, "A", 5, 0};
 
         plyr.skill[plyr.skillCount++] = fireBall;
     } else if (plyr.classType == "Warrior") {
-        Skill berserkSlash = {"SK004", "Berserk Slash", "strength", 45, "B", 20};
+        Skill berserkSlash = {"SK004", "Berserk Slash", "strength", 45, "B", 20, 0};
 
         plyr.skill[plyr.skillCount++] = berserkSlash;
     } else if (plyr.classType == "Assassin") {
-        Skill shadowStrike = {"SK005", "Shadow Strike", "dex", 40, "B", 20 };
+        Skill shadowStrike = {"SK005", "Shadow Strike", "dex", 40, "B", 20, 0};
 
         plyr.skill[plyr.skillCount++] = shadowStrike;
     }
 }
-
-
 
 //sistem scaling weapon
 int weaponScaling(Equipment weapon, Player &plyr){  
@@ -464,43 +498,61 @@ int skillScaling(Skill spell, Player &plyr){
 }
 
 void recalcStat(Player &plyr) {
-    Equipment weapon = plyr.equip[plyr.equippedWeaponIndex];
+    int oldMaxHp = plyr.maxHp;
+    int oldMaxMana = plyr.maxMana;
+
+    Equipment weapon;
+
+    if (plyr.usingWeapon) {
+        weapon = plyr.equip[plyr.equippedWeaponIndex];
+    }
 
     plyr.maxHp = 100 + (plyr.vigor * 10);
     plyr.maxMana = 50 + (plyr.mind * 8);
 
-    plyr.hp = plyr.maxHp;
-    plyr.mana = plyr.maxMana;
-    
-    plyr.baseDamage = 5 + ((plyr.strength * 2) + plyr.dexterity) / 2;
-    //skill damage
-    plyr.skillDamage = plyr.inteligence * 2;
+    plyr.hp += (plyr.maxHp - oldMaxHp);
+    plyr.mana += (plyr.maxMana - oldMaxMana);
 
-    //menginisiate damage senjata player
+    if(plyr.hp > plyr.maxHp){
+        plyr.hp = plyr.maxHp;
+    }
+
+    if(plyr.mana > plyr.maxMana){
+        plyr.mana = plyr.maxMana;
+    }
+
+    if(plyr.hp < 0){
+        plyr.hp = 0;
+    }
+
+    if(plyr.mana < 0){
+        plyr.mana = 0;
+    }
+
+    plyr.baseDamage = 5 + ((plyr.strength * 2) + plyr.dexterity) / 2;
+    plyr.skillDamage = plyr.inteligence * 2;
     plyr.weaponDamage = plyr.baseDamage;
 
-    // jika memakai weapon
     if (plyr.usingWeapon == true) {
         plyr.weaponDamage = weapon.damageEquipment + weaponScaling(weapon, plyr);
     }
 }
 
 void showStats(Player &plyr) {
-    cout << "Nama  : " << plyr.nama << endl;
-    cout << "Class : " << plyr.classType << endl;
-    cout << "Level : " << plyr.lvl << " | EXP: " << plyr.exp << endl;
-    cout << "Gold  : " << plyr.gold << endl;
+    cout << "Nama          : " << plyr.nama << endl;
+    cout << "Class         : " << plyr.classType << endl;
+    cout << "Level         : " << plyr.lvl << endl;
+    cout << "Gold          : " << plyr.gold << endl;
+    cout << "Exp           : " << plyr.exp << "/" << plyr.maxExp << endl;
     cout << "========================================" << endl;
-    cout << "HP    : " << plyr.hp << "/" << plyr.maxHp << endl;
-    cout << "Mana  : " << plyr.mana << "/" << plyr.maxMana << endl;
-    cout << "Damage: " << plyr.baseDamage << endl;
-    cout << "Def   : " << plyr.def << endl;
+    cout << "HP            : " << plyr.hp << "/" << plyr.maxHp << endl;
+    cout << "Mana          : " << plyr.mana << "/" << plyr.maxMana << endl;
+    cout << "Base Damage   : " << plyr.baseDamage << endl;
+    cout << "Damage Weapon : " << plyr.weaponDamage << endl;
+    cout << "Def           : " << plyr.def << endl;
     cout << "========================================" << endl;
-    cout << "Strength : " << plyr.strength  << " | Dexterity : " << plyr.dexterity << endl;
-    cout << "Inteligence : " << plyr.inteligence << " | Vigor : " << plyr.vigor << " | Mind : " << plyr.mind << endl;
-
-    showInventory(plyr);
-    showEquipment(plyr);
+    cout << "Strength      : " << plyr.strength  << " | Dexterity : " << plyr.dexterity << endl;
+    cout << "Inteligence   : " << plyr.inteligence << " | Vigor : " << plyr.vigor << " | Mind : " << plyr.mind << endl;
 }
 
 // show inventory
@@ -517,12 +569,105 @@ void showInventory(Player &plyr) {
     }
 }
 
-void listWeapon(Player &plyr) {
-    for(int i = 0; i < plyr.equipmentCount; i++) {
-        int sellPrice = (plyr.equip[i].damageEquipment * 20) + (plyr.equip[i].upgradeLevel * 100);
+void sortWeaponIndex(Player &plyr, int idx[], int opsiSort) {
+    int n = plyr.equipmentCount;
 
-        cout << "[" << i + 1 << "] " << plyr.equip[i].namaEquipment;
-        if(i == plyr.equippedWeaponIndex && plyr.usingWeapon){
+    for(int gap = n / 2; gap > 0; gap /= 2) {
+        for(int i = gap; i < n; i++) {
+            int temp = idx[i];
+            int j = i;
+
+            while(j >= gap) {
+                bool tukar = false;
+
+                switch(opsiSort) {
+                    case 1: 
+                        if(plyr.equip[idx[j - gap]].damageEquipment <
+                           plyr.equip[temp].damageEquipment) {
+                            tukar = true;
+                        }
+                        break;
+                    case 2:
+                        if(plyr.equip[idx[j - gap]].damageEquipment >
+                           plyr.equip[temp].damageEquipment) {
+                            tukar = true;
+                        }
+                        break;
+                    case 3: 
+                        if(plyr.equip[idx[j - gap]].namaEquipment >
+                           plyr.equip[temp].namaEquipment) {
+                            tukar = true;
+                        }
+                        break;
+                    case 4: 
+                        if(plyr.equip[idx[j - gap]].namaEquipment <
+                           plyr.equip[temp].namaEquipment) {
+                            tukar = true;
+                        }
+                        break;
+                }
+
+                if(!tukar) {
+                    break;
+                }
+
+                idx[j] = idx[j - gap];
+                j -= gap;
+            }
+
+            idx[j] = temp;
+        }
+    }
+}
+
+void showAllWeapon(Player &plyr) {
+    int idx[50];
+    int opsiSort;
+
+    if(plyr.equipmentCount == 0) {
+        cout << "Tidak ada weapon!" << endl;
+        return;
+    }
+
+    do {
+        cout << "========================================" << endl;
+        cout << "|           SHOW ALL WEAPON            |" << endl;
+        cout << "========================================" << endl;
+        cout << "[1] Damage Tertinggi" << endl;
+        cout << "[2] Damage Terendah" << endl;
+        cout << "[3] Nama A-Z" << endl;
+        cout << "[4] Nama Z-A" << endl;
+        cout << "[5] Default" << endl;
+        cout << "========================================" << endl;
+        cout << "Pilih sorting : ";
+        cin >> opsiSort;
+    
+        if(opsiSort < 1 || opsiSort > 5) {
+            system("cls");
+            cout << "Pilihan sorting tidak valid!" << endl;
+        }
+    } while (opsiSort < 1 || opsiSort > 5);
+
+    for(int i = 0; i < plyr.equipmentCount; i++) {
+        idx[i] = i;
+    }
+
+    if(opsiSort != 5) {
+        sortWeaponIndex(plyr, idx, opsiSort);
+    }
+
+    system("cls");
+
+    cout << "========================================" << endl;
+    cout << "|              WEAPON LIST             |" << endl;
+    cout << "========================================" << endl;
+
+    for(int i = 0; i < plyr.equipmentCount; i++) {
+        int id = idx[i];
+        int sellPrice = plyr.equip[id].price + (plyr.equip[id].upgradeLevel * 100);
+
+        cout << "[" << id + 1 << "] " << plyr.equip[id].namaEquipment;
+        if(id == plyr.equippedWeaponIndex && plyr.usingWeapon) {
             cout << " (Equipped)";
         }
         cout << endl;
@@ -534,65 +679,12 @@ void listWeapon(Player &plyr) {
     }
 }
 
-void skillList(Player &plyr, Monster &monster, Skill &spell){
-int pilih;
-
-    cout << "========================================" << endl;
-    cout << "|            List Skill                |" << endl;
-    cout << "========================================" << endl;
-
-    for(int i = 0; i < plyr.skillCount; i++) {
-        cout << "[" << i+1 << "] " << plyr.skill[i].namaSkill
-             << " | Base Damage: " << plyr.skill[i].damageSkill
-             << " | Mana Cost: " << plyr.skill[i].manaCost
-             << endl;
-    }
-
-    cout << "========================================" << endl;
-    cout << "Pilih skill: ";
-    cin >> pilih;
-
-    pilih--;
-    
-    if(pilih < 0 || pilih >= plyr.skillCount){
-        cout << "Skill tidak valid!" << endl;
-        return;
-    }
-
-    Skill skillDipakai = plyr.skill[pilih];
-    if(plyr.mana < spell.manaCost){
-        cout << "Mana tidak cukup!" << endl;
-        return;
-    }
-
-    // hitung damage skill
-    int damageSkill = skillDipakai.damageSkill + skillScaling(skillDipakai, plyr);
-
-    if(monster.isDefending){
-        damageSkill /= 2;
-        cout << monster.monsterName << " sedang bertahan! Damage skill berkurang!" << endl;
-    }
-
-    plyr.mana -= plyr.skill[pilih].manaCost;
-    monster.monsterHp -= damageSkill;
-
-    if(monster.monsterHp < 0) monster.monsterHp = 0;
-    system("cls");
-    cout << "========================================" << endl;
-    cout << plyr.nama << " menggunakan skill " << skillDipakai.namaSkill << endl;
-    cout << "Damage diberikan: " << damageSkill << endl;
-    cout << "menggunakan mana sebesar : " << plyr.skill[pilih].manaCost << endl;
-    cout << "========================================" << endl;
-    system("pause");
-    system("cls");
-}
-
 // show equipment
-void showEquipment(Player &plyr) {
+void equipmentMenu(Player &plyr) {
     int opsi;
 
     cout << "========================================" << endl; 
-    cout << "|              Equipment               |" << endl;
+    cout << "|           Equipment Menu             |" << endl;
     cout << "========================================" << endl; 
 
     if (plyr.equipmentCount == 0){
@@ -600,22 +692,27 @@ void showEquipment(Player &plyr) {
         return;
     } 
 
-    cout << "Current Weapon : ";
-
     if (plyr.usingWeapon) {
-        cout << plyr.equip[plyr.equippedWeaponIndex].namaEquipment;
+        int weaponIndex = plyr.equippedWeaponIndex;
+
+        int sellPrice = plyr.equip[weaponIndex].price + (plyr.equip[weaponIndex].upgradeLevel * 100);
+
+        cout << "  " << plyr.equip[weaponIndex].namaEquipment << " (Equipped)" << endl;
+        cout << "  Damage   : " << plyr.equip[weaponIndex].damageEquipment << endl;
+        cout << "  Scaling  : " << plyr.equip[weaponIndex].scaling << " | " << plyr.equip[weaponIndex].scalingTipe << endl;
+        cout << "  Level    : " << plyr.equip[weaponIndex].upgradeLevel << endl;
+        cout << "  Price    : " << sellPrice << " Gold" << endl;
     } else {
-        cout << "None";
+        cout << "  None" << endl;
     }
 
-    cout << endl;
     cout << "========================================" << endl;
 
-    listWeapon(plyr);
-
-    cout << "[1] Equip Weapon" << endl;
-    cout << "[2] Unequip Weapon" << endl;
-    cout << "[3] Keluar" << endl;
+    cout << "[1] Show All Weapon" << endl;
+    cout << "[2] Equip Weapon" << endl;
+    cout << "[3] Unequip Weapon" << endl;
+    cout << "[4] Search Weapon" << endl;
+    cout << "[5] Keluar" << endl;
     cout << "========================================" << endl;
 
     cout << "Masukkan pilihan : ";
@@ -624,17 +721,42 @@ void showEquipment(Player &plyr) {
     switch(opsi){
         case 1:
             system("cls");
-            equipWeapon(plyr);
+            showAllWeapon(plyr);
             break;
         case 2:
             system("cls");
-            unequipWeapon(plyr);
+            equipWeapon(plyr);
             break;
         case 3:
+            system("cls");
+            unequipWeapon(plyr);
+            break;
+        case 4:
+            system("cls");
+            searchWeapon(plyr);
+            break;
+        case 5:
             break;
         default:
             cout << "Pilihan tidak valid!" << endl;
             break;
+    }
+}
+
+void listWeapon(Player &plyr) {
+    for(int i = 0; i < plyr.equipmentCount; i++) {
+        int sellPrice = plyr.equip[i].price + (plyr.equip[i].upgradeLevel * 100);
+
+        cout << "[" << i + 1 << "] " << plyr.equip[i].namaEquipment;
+        if(i == plyr.equippedWeaponIndex && plyr.usingWeapon){
+            cout << " (Equipped)";
+        }
+        cout << endl;
+        cout << "  Damage   : " << plyr.equip[i].damageEquipment << endl;
+        cout << "  Scaling  : " << plyr.equip[i].scaling << " | " << plyr.equip[i].scalingTipe << endl;
+        cout << "  Level    : " << plyr.equip[i].upgradeLevel << endl;
+        cout << "  Price    : " << sellPrice << " Gold" << endl;
+        cout << "----------------------------------------" << endl;
     }
 }
 
@@ -696,6 +818,58 @@ void unequipWeapon(Player &plyr){
     cout << "========================================" << endl;
 }
 
+void searchWeapon(Player &plyr){
+    string keyword;
+    bool ditemukan;
+    char ulang;
+
+    do {
+        ditemukan = false;
+        cin.ignore();
+
+        cout << "========================================" << endl;
+        cout << "|            SEARCH WEAPON             |" << endl;
+        cout << "========================================" << endl;
+        cout << "Masukkan nama / kode weapon : ";
+        getline(cin, keyword);
+    
+        for(int i = 0; i < plyr.equipmentCount; i++){
+            if(plyr.equip[i].namaEquipment == keyword || plyr.equip[i].codeEquipment == keyword){
+                int sellPrice = plyr.equip[i].price +  (plyr.equip[i].upgradeLevel * 100);
+                
+                cout << "Weapon ditemukan!" << endl;
+                cout << endl;
+    
+                cout << "[" << i + 1 << "] " << plyr.equip[i].namaEquipment;
+                if(i == plyr.equippedWeaponIndex && plyr.usingWeapon) {
+                    cout << " (Equipped)";
+                }
+                cout << endl;
+                cout << "  Damage   : " << plyr.equip[i].damageEquipment << endl;
+                cout << "  Scaling  : " << plyr.equip[i].scaling << " | " << plyr.equip[i].scalingTipe << endl;
+                cout << "  Level    : " << plyr.equip[i].upgradeLevel << endl;
+                cout << "  Price    : " << sellPrice << " Gold" << endl;
+                cout << "----------------------------------------" << endl;
+    
+                ditemukan = true;
+                break;
+            }
+        }
+
+        if(!ditemukan){
+            cout << "Weapon tidak ditemukan!" << endl;
+            cout << "\nCari lagi? (y/t) : ";
+            cin >> ulang;
+
+            system("cls");
+
+            if(ulang != 'y' && ulang != 'Y'){
+                return;
+            }
+        }
+    } while (!ditemukan);
+}
+
 
 void townMenu() {
     system("cls");
@@ -741,7 +915,7 @@ void townMenu() {
             case 4:
                 //equipment
                 system("cls");
-                showEquipment(plyr);
+                equipmentMenu(plyr);
                 
                 if (!backChildMenu()) {
                     backMain(); 
@@ -755,7 +929,7 @@ void townMenu() {
             case 6:
                 system("cls");
 
-                //
+                saveGame(plyr);
                 
                 break;
             case 7:
@@ -800,42 +974,40 @@ void enterDungeon() {
                 break;
             case 2:
                 system("cls");
-                // Code for about the monster
                 aboutMonster();
                 ulangDungeon = backChildMenu();
                 break;
             case 3:
                 system("cls");
                 showInventory(plyr);
-                // code fo inventori
                 ulangDungeon = backChildMenu();
                 break;
             case 4:
                 system("cls");
                 // Code for equipment
-                showEquipment(plyr);
+                equipmentMenu(plyr);
                 ulangDungeon = backChildMenu();
                 break;
             case 5:
                 system("cls");
+                cout << "========================================" << endl;
+                cout << "|            Statistik Karakter        |" << endl;
+                cout << "========================================" << endl; 
                 showStats(plyr);
-                // Code for level up
                 ulangDungeon = backChildMenu();
                 break;
             case 6:
                 system("cls");
                 levelUp(plyr);
                 ulangDungeon = backChildMenu();
-                // Code for save game
-
                 break;
             case 7:
                 system("cls");
-                
-                // Code for save game
-
+                saveGame(plyr);
+                ulangDungeon = backChildMenu();
             break;
             case 8:
+                system("cls");
                 ulangDungeon = false;
                 break;
             default:
@@ -887,15 +1059,12 @@ void shopMenu() {
         cout << "========================================" << endl;
         cout << "Gold Player : " << plyr.gold << endl;
         cout << "========================================" << endl;
-        for (int i = 0; i < 2; i++) {
-            cout << "[" << i + 1 << "] "
-                 << shopItem[i].namaItem
-                 << " | Price : "
-                 << shopItem[i].valueItem
-                 << endl;
-        }
-        cout << "[3] Sell Weapon" << endl;
-        cout << "[4] Keluar" << endl;
+        cout << "[1] Buy Potion HP" << endl;
+        cout << "[2] Buy Potion Mana" << endl;
+        cout << "[3] Buy Weapon" << endl;
+        cout << "[4] Buy Skill" << endl;
+        cout << "[5] Sell Item / Weapon" << endl;
+        cout << "[6] Exit" << endl;
         cout << "========================================" << endl;
         cout << "Masukkan pilihan : ";
         cin >> opsi;
@@ -913,10 +1082,20 @@ void shopMenu() {
                 break;
             case 3:
                 system("cls");
-                sellWeapon(plyr);
+                buyWeapon(plyr);
                 ulangShop = backChildMenu();
                 break;
             case 4:
+                system("cls");
+                buySkill(plyr);
+                ulangShop = backChildMenu();
+                break;
+            case 5:
+                system("cls");
+                sellItem(plyr);
+                ulangShop = backChildMenu();
+                break;
+            case 6:
                 system("cls");
                 ulangShop = false;
                 break;
@@ -931,14 +1110,17 @@ void shopMenu() {
 
 void buyItem(Player &plyr, int opsi) {
     char konfirmasi;
-    Item opsiItem = shopItem[opsi];
+    int qty;
     opsi--;
+    Item opsiItem = shopItem[opsi];
 
     cout << "========================================" << endl;
     cout << "Item  : " << opsiItem.namaItem << endl;
     cout << "Harga : " << opsiItem.valueItem << " Gold" << endl;
     cout << "Gold Player : " << plyr.gold << endl;
     cout << "========================================" << endl;
+    cout << "Masukkan Jumlah : ";
+    cin >> qty;
 
     cout << "Beli item ini? (y/t) : ";
     cin >> konfirmasi;
@@ -948,24 +1130,234 @@ void buyItem(Player &plyr, int opsi) {
         return;
     }
 
-    if (plyr.gold < opsiItem.valueItem) {
+    if (plyr.gold < (opsiItem.valueItem*qty)) {
         cout << "========================================" << endl;
         cout << "Gold tidak cukup! Gold kamu : " << plyr.gold << endl;
         cout << "========================================" << endl;
         return;
     }
 
-    plyr.gold -= opsiItem.valueItem;
+    plyr.gold -= (opsiItem.valueItem*qty);
 
     Item itemBeli = opsiItem;
-    itemBeli.countItem = 1;
+    itemBeli.countItem = qty;
 
     addItem(plyr, itemBeli);
+
+    system("cls");
 
     cout << "========================================" << endl;
     cout << opsiItem.namaItem << " berhasil dibeli!" << endl;
     cout << "Gold tersisa : " << plyr.gold << endl;
     cout << "========================================" << endl;
+}
+
+void buyWeapon(Player &plyr) {
+    int pilih;
+    char confirm;
+    bool weaponSama = false;
+
+    cout << "========================================" << endl;
+    cout << "|             BUY WEAPON               |" << endl;
+    cout << "========================================" << endl;
+    for(int i = 0; i < 15; i++) {
+        cout << "[" << i + 1 << "] " << weaponList[i].namaEquipment;
+        cout << endl;
+        cout << "  Damage   : " << weaponList[i].damageEquipment << endl;
+        cout << "  Scaling  : " << weaponList[i].scaling << " | " << weaponList[i].scalingTipe << endl;
+        cout << "  Price    : " << weaponList[i].price << " Gold" << endl;
+        cout << "----------------------------------------" << endl;
+    }
+    cout << "========================================" << endl;
+    cout << "Gold : " << plyr.gold << endl;
+    cout << "\nPilih weapon : ";
+    cin >> pilih;
+
+    pilih--;
+
+    if(pilih < 0 || pilih >= 15) {
+        cout << "\nWeapon tidak valid!" << endl;
+        return;
+    }
+
+    int harga = weaponList[pilih].price;
+
+    if(plyr.gold < harga) {
+        cout << "\nGold tidak cukup!" << endl;
+        return;
+    }
+
+    for(int i = 0; i < plyr.equipmentCount; i++) {
+        if(plyr.equip[i].codeEquipment == weaponList[pilih].codeEquipment) {
+            weaponSama = true;
+
+            cout << "========================================" << endl;
+            cout << "Weapon yang sama sudah dimiliki!" << endl;
+            cout << "\nWeapon Inventory:" << endl;
+            cout << "Nama   : " << plyr.equip[i].namaEquipment << endl;
+            cout << "Level  : " << plyr.equip[i].upgradeLevel << endl;
+            cout << "Damage : " << plyr.equip[i].damageEquipment << endl;
+            cout << "\nWeapon Shop:" << endl;
+            cout << "Nama   : " << weaponList[pilih].namaEquipment << endl;
+            cout << "Level  : " << weaponList[pilih].upgradeLevel << endl;
+            cout << "Damage : " << weaponList[pilih].damageEquipment << endl;
+            cout << "========================================" << endl;
+            break;
+        }
+    }
+
+    if(weaponSama) {
+        cout << "Tetap beli weapon duplicate ini? (y/t) : ";
+    } else {
+        cout << "Beli weapon ini? (y/t) : ";
+    }
+
+    cin >> confirm;
+
+    if(confirm != 'y' && confirm != 'Y') {
+        cout << "\nPembelian dibatalkan!" << endl;
+        return;
+    }
+
+    plyr.gold -= harga;
+
+    plyr.equip[plyr.equipmentCount++] = weaponList[pilih];
+
+    cout << "\n" << weaponList[pilih].namaEquipment << " berhasil dibeli!" << endl;
+}
+
+void buySkill(Player &plyr) {
+    int pilih;
+    char confirm;
+
+    cout << "========================================" << endl;
+    cout << "|              BUY SKILL               |" << endl;
+    cout << "========================================" << endl;
+
+    for(int i = 0; i < 8; i++) {
+        cout << "[" << i + 1 << "] " << shopSkill[i].namaSkill << endl;
+        cout << "  Damage   : " << shopSkill[i].damageSkill << endl;
+        cout << "  Scaling  : " << shopSkill[i].scaling << " | " << shopSkill[i].scalingTipe << endl;
+        cout << "  Price    : " << shopSkill[i].price << " Gold" << endl;
+        cout << "----------------------------------------" << endl;
+    }
+
+    cout << "========================================" << endl;
+    cout << "Gold : " << plyr.gold << endl;
+
+    cout << "\nPilih skill : ";
+    cin >> pilih;
+
+    pilih--;
+
+    if(pilih < 0 || pilih >= 8) {
+        cout << "\nSkill tidak valid!" << endl;
+        return;
+    }
+
+    if(plyr.skillCount >= 10) {
+        cout << "\nSlot skill penuh!" << endl;
+        return;
+    }
+
+    if(plyr.gold < shopSkill[pilih].price) {
+        cout << "\nGold tidak cukup!" << endl;
+        return;
+    }
+
+    for(int i = 0; i < plyr.skillCount; i++) {
+        if(plyr.skill[i].codeSkill == shopSkill[pilih].codeSkill) {
+            cout << "\nSkill sudah dimiliki!" << endl;
+            return;
+        }
+    }
+
+    cout << "Beli skill ini? (y/t) : ";
+    cin >> confirm;
+
+    if(confirm != 'y' && confirm != 'Y') {
+        cout << "\nPembelian dibatalkan!" << endl;
+        return;
+    }
+
+    plyr.gold -= shopSkill[pilih].price;
+
+    plyr.skill[plyr.skillCount++] = shopSkill[pilih];
+
+    cout << "\nSkill berhasil dibeli!" << endl;
+}
+
+void sellItem(Player &plyr) {
+    int opsi;
+    int itemDipilih;
+
+    cout << "========================================" << endl;
+    cout << "|             SELL MENU                |" << endl;
+    cout << "========================================" << endl;
+    cout << "1. Sell Potion" << endl;
+    cout << "2. Sell Weapon" << endl;
+    cout << "========================================" << endl;
+    cout << "Pilih : ";
+    cin >> opsi;
+
+    switch(opsi) {
+        case 1: {
+            cout << endl;
+            int harga;
+            int qty;
+
+            showInventory(plyr);
+
+            cout << "\nPilih item : ";
+            cin >> itemDipilih;
+
+            itemDipilih--;
+
+            if(itemDipilih < 0 || itemDipilih >= plyr.inventoryCount) {
+                cout << "\nItem tidak valid!" << endl;
+                return;
+            }
+
+            cout << "Jumlah yang ingin dijual : ";
+            cin >> qty;
+
+            if(qty <= 0) {
+                cout << "\nJumlah tidak valid!" << endl;
+                return;
+            }
+
+            if(qty > plyr.inv[itemDipilih].countItem) {
+                cout << "\nJumlah item tidak cukup!" << endl;
+                return;
+            }
+
+            harga = (plyr.inv[itemDipilih].valueItem - 50) * qty;
+
+            cout << "\n========================================" << endl;
+            cout << qty << " "  << plyr.inv[itemDipilih].namaItem << " terjual seharga " << harga << " Gold" << endl;
+            cout << "========================================" << endl;
+
+            plyr.gold += harga;
+
+            plyr.inv[itemDipilih].countItem -= qty;
+
+            if(plyr.inv[itemDipilih].countItem <= 0) {
+                for(int i = itemDipilih; i < plyr.inventoryCount - 1; i++) {
+                    plyr.inv[i] = plyr.inv[i + 1];
+                }
+                plyr.inventoryCount--;
+            }
+            break;
+        }
+
+        case 2:
+            cout << endl;
+            sellWeapon(plyr);
+            break;
+        default:
+            cout << "Pilihan tidak valid!" << endl;
+            break;
+    }
 }
 
 void sellWeapon(Player &plyr) {
@@ -989,29 +1381,34 @@ void sellWeapon(Player &plyr) {
     pilih--;
 
     if (pilih < 0 || pilih >= plyr.equipmentCount) {
-        cout << "Weapon tidak valid!" << endl;
+        cout << "\nWeapon tidak valid!" << endl;
         return;
     }
 
     if (pilih == plyr.equippedWeaponIndex && plyr.equipmentCount == 1) {
-        cout << "Weapon terakhir tidak bisa dijual!" << endl;
+        cout << "\nWeapon terakhir tidak bisa dijual!" << endl;   
         return;
     }
 
-    int hargaJual = (plyr.equip[pilih].damageEquipment * 20) + (plyr.equip[pilih].upgradeLevel * 100);
+    int realPrice = plyr.equip[pilih].price + (plyr.equip[pilih].upgradeLevel * 100);
+    int sellPrice = realPrice / 2;
 
-    cout << "Jual " << plyr.equip[pilih].namaEquipment << " ? (y/t) : ";
+    cout << "========================================" << endl;
+    cout << "Harga asli : " << realPrice << " Gold" << endl;
+    cout << "Harga jual : " << sellPrice << " Gold" << endl;
+    cout << "========================================" << endl;
+    cout << "\nJual " << plyr.equip[pilih].namaEquipment << " ? (y/t) : ";
     cin >> konfirmasi;
 
     if (konfirmasi != 'y' && konfirmasi != 'Y') {
-        cout << "Penjualan dibatalkan!" << endl;
+        cout << "\nPenjualan dibatalkan!" << endl;
         return;
     }
 
-    plyr.gold += hargaJual;
+    plyr.gold += sellPrice;
 
     cout << "\nWeapon berhasil dijual!" << endl;
-    cout << "Mendapatkan " << hargaJual  << " Gold" << endl;
+    cout << "Mendapatkan " << sellPrice  << " Gold" << endl;
 
     for (int i = pilih; i < plyr.equipmentCount - 1; i++) {
         plyr.equip[i] = plyr.equip[i + 1];
@@ -1052,10 +1449,11 @@ void blacksmithMenu(){
                 break;
             case 2:
                 system("cls");
-                showEquipment(plyr);
+                equipmentMenu(plyr);
                 ulangBlacksmith = backChildMenu();
                 break;
             case 3:
+                system("cls");
                 ulangBlacksmith = false;
                 break;
             default:
@@ -1074,14 +1472,15 @@ void upgradeWeapon(Player &plyr) {
     cout << "========================================" << endl;
     cout << "|           Upgrade Weapon             |" << endl;
     cout << "========================================" << endl;
-    for (int i = 0; i < plyr.equipmentCount; i++) {
+
+    for(int i = 0; i < plyr.equipmentCount; i++) {
         int biayaUpgrade = 400 + (plyr.equip[i].upgradeLevel * 50);
-        cout << "[" << i + 1 << "] "
-             << plyr.equip[i].namaEquipment
-             << " Lv." << plyr.equip[i].upgradeLevel
-             << " | Damage : " << plyr.equip[i].damageEquipment
-             << " | Cost : " << biayaUpgrade
-             << " Gold" << endl;
+        cout << "[" << i + 1 << "] " << weaponList[i].namaEquipment;
+        cout << endl;
+        cout << "  Damage   : " << weaponList[i].damageEquipment << endl;
+        cout << "  Scaling  : " << weaponList[i].scaling << " | " << weaponList[i].scalingTipe << endl;
+        cout << "  Cost     : " << biayaUpgrade << " Gold" << endl;
+        cout << "----------------------------------------" << endl;
     }
 
     cout << "========================================" << endl;
@@ -1116,7 +1515,7 @@ void upgradeWeapon(Player &plyr) {
     plyr.gold -= biayaUpgrade;
 
     weapon.damageEquipment += 5;
-
+    weapon.price += 200;
     weapon.upgradeLevel++;
 
     recalcStat(plyr);
@@ -1143,24 +1542,29 @@ void monsterAction(Player &plyr, Monster &monster){
     inputMonster = rand() % 100;
 
     if(monster.monsterHp < monster.maxHp * 0.4) {
-            if(inputMonster < 40) {
-                monster.isDefending = true;
-                cout << "========================================" << endl;
-                cout << monster.monsterName << " bertahan!" << endl;
-                cout << "========================================" << endl;
-                system("pause");
-                system("cls");
-                return;
+        if(inputMonster < 40) {
+            monster.isDefending = true;
+            cout << "========================================" << endl;
+            cout << monster.monsterName << " bertahan!" << endl;
+            cout << "========================================" << endl;
+            system("pause");
+            system("cls");
+            return;
         }
     }
 
     int damage = monster.monsterDamage;
 
     if(plyr.isDefending == true){
-        damage = (monster.monsterDamage/2)-plyr.def;
-    } 
-    
-    if(damage < 0) damage = 0;
+        damage /= 2;
+    }
+
+    damage -= plyr.def;
+
+    if(damage < 0){
+        damage = 0;
+    }
+
     cout << "========================================" << endl;
     cout << monster.monsterName << " menyerang " << plyr.nama << endl;
     cout << plyr.nama << " Menerima Damage sebesar " << damage << endl; 
@@ -1173,7 +1577,6 @@ void monsterAction(Player &plyr, Monster &monster){
 }
 
 void enterFloor(Player &plyr) {
-    srand(time(0));
 
     int randomMonster = rand() % 5;
 
@@ -1192,50 +1595,112 @@ void enterFloor(Player &plyr) {
     battleMonster(plyr, monster, spell);
 }
 
+void skillList(Player &plyr, Monster &monster){
+    int pilih;
+
+    cout << "========================================" << endl;
+    cout << "|            List Skill                |" << endl;
+    cout << "========================================" << endl;
+
+    for(int i = 0; i < plyr.skillCount; i++) {
+        cout << "[" << i + 1 << "] " << plyr.skill[i].namaSkill;
+        cout << endl;
+        cout << "  Base Damage   : " << plyr.skill[i].damageSkill << endl;
+        cout << "  Mana Cost  : " << plyr.skill[i].manaCost << endl;
+        cout << "----------------------------------------" << endl;
+    }
+
+    cout << "========================================" << endl;
+    cout << "Pilih skill: ";
+    cin >> pilih;
+
+    pilih--;
+    
+    if(pilih < 0 || pilih >= plyr.skillCount){
+        cout << "Skill tidak valid!" << endl;
+        return;
+    }
+
+    Skill skillDipakai = plyr.skill[pilih];
+    if(plyr.mana < skillDipakai.manaCost){
+        cout << "Mana tidak cukup!" << endl;
+        return;
+    }
+
+    // hitung damage skill
+    int damageSkill = skillDipakai.damageSkill + skillScaling(skillDipakai, plyr);
+
+    if(monster.isDefending){
+        damageSkill /= 2;
+        cout << monster.monsterName << " sedang bertahan! Damage skill berkurang!" << endl;
+    }
+
+    plyr.mana -= plyr.skill[pilih].manaCost;
+    monster.monsterHp -= damageSkill;
+
+    if(monster.monsterHp < 0) monster.monsterHp = 0;
+    system("cls");
+    cout << "========================================" << endl;
+    cout << plyr.nama << " menggunakan skill " << skillDipakai.namaSkill << endl;
+    cout << "Damage diberikan: " << damageSkill << endl;
+    cout << "menggunakan mana sebesar : " << plyr.skill[pilih].manaCost << endl;
+    cout << "========================================" << endl;
+    system("pause");
+    system("cls");
+}
+
 void levelUp(Player &plyr){
     int inputLevelUp;
 
-    // tolong buatkan agar bisa menampilkan pesan konfirmasi
-    if(plyr.poinLevelUp <=0){
-        cout << "poin anda kurang untuk level up" << endl;
+    if(plyr.poinLevelUp <= 0){
+        cout << "Poin anda kurang untuk level up" << endl;
         return;
     }
-    plyr.lvl += plyr.poinLevelUp;
-    plyr.maxExp += plyr.maxExp*0.1;
-    while (plyr.poinLevelUp >= 1)
-    {
-        cout << "========================================" << endl;
-        cout << plyr.nama << " dapat menaikan level stat "<< endl;
-        cout << "memiliki " << plyr.poinLevelUp << " poin stat yang bisa dinaikan" << endl;
-        cout << "========================================" << endl;
-        cout << "[1] Vigor" << endl;
-        cout << "[2] Mind" << endl;
-        cout << "[3] Def" << endl;
-        cout << "[4] Strength" << endl;
-        cout << "[5] Dexerity" << endl;
-        cout << "[6] Intelegence" << endl;
-        cout << "========================================" << endl;
-        cout << "pilih stat yang ingin anda naikan : ";
-        cin >> inputLevelUp;
-        cout << "----------------------------------------" << endl;
-        switch (inputLevelUp)
-            {
-            case 1: plyr.vigor += 1; break;
-            case 2: plyr.mind += 1; break;
-            case 3: plyr.def += 1; break;
-            case 4: plyr.strength += 1; break;
-            case 5: plyr.dexterity += 1; break;            
-            case 6: plyr.inteligence += 1; break;
-            default: cout << "Pilihan tidak valid!" << endl; continue;
-            }
-        plyr.poinLevelUp -= 1;
+
+    cout << "========================================" << endl;
+    cout << plyr.nama << " dapat menaikan level stat "<< endl;
+    cout << "memiliki " << plyr.poinLevelUp << " poin stat yang bisa dinaikan" << endl;
+    cout << "========================================" << endl;
+    cout << "[1] Vigor" << endl;
+    cout << "[2] Mind" << endl;
+    cout << "[3] Def" << endl;
+    cout << "[4] Strength" << endl;
+    cout << "[5] Dexerity" << endl;
+    cout << "[6] Intelegence" << endl;
+    cout << "========================================" << endl;
+    cout << "Pilih stat yang ingin anda naikan : ";
+    cin >> inputLevelUp;
+
+    if (inputLevelUp < 1 || inputLevelUp > 6) {
+        cout << "Pilihan tidak valid!" << endl;
+        levelUp(plyr); 
+        return;
     }
+
+    switch (inputLevelUp) {
+        case 1: plyr.vigor++; break;
+        case 2: plyr.mind++; break;
+        case 3: plyr.def++; break;
+        case 4: plyr.strength++; break;
+        case 5: plyr.dexterity++; break;            
+        case 6: plyr.inteligence++; break;
+    }
+
+    plyr.poinLevelUp--;
     recalcStat(plyr);
-    cout << "Stat berhasil ditingkatkan!" << endl;
+
+    cout << "\nStat berhasil ditingkatkan! Sisa poin: " << plyr.poinLevelUp << endl;
+
+    if (plyr.poinLevelUp <= 0) {
+        cout << "Semua poin telah digunakan!" << endl;
+        return;
+    }
+
+    levelUp(plyr);
 }
 
 void useItem(Player &plyr){
- int potionIndex[50];
+    int potionIndex[50];
     int potionCount = 0;
 
     cout << "========================================" << endl;
@@ -1325,7 +1790,7 @@ void defeatHandling(Player &plyr){
     recalcStat(plyr);
 }
 
-void battleMonster(Player &plyr, Monster monster, Skill Spell) {
+void battleMonster(Player &plyr, Monster monster, Skill spell) {
     int pilihan;
     
     do {
@@ -1373,7 +1838,7 @@ void battleMonster(Player &plyr, Monster monster, Skill Spell) {
                 
                 break;
             case 2:
-                skillList(plyr, monster, Spell);
+                skillList(plyr, monster);
                 break;
             case 3:
                 plyr.isDefending = true;
@@ -1385,7 +1850,7 @@ void battleMonster(Player &plyr, Monster monster, Skill Spell) {
                 system("cls");
                 break;
             case 5:
-                showEquipment(plyr);
+                equipmentMenu(plyr);
                 system("pause");
                 system("cls");
                 break;
@@ -1407,21 +1872,26 @@ void battleMonster(Player &plyr, Monster monster, Skill Spell) {
             plyr.gold += monster.monsterGoldDrop;
             monster.isAlive = false;
 
-            if(plyr.exp > plyr.maxExp){
-                system("cls");
-                cout << "========================================" << endl;
-                cout << "Level Naik" <<endl; 
+            while(plyr.exp >= plyr.maxExp){
+                plyr.exp -= plyr.maxExp;
+                plyr.lvl++;
                 plyr.poinLevelUp++;
-                cout << "poin yang dimiliki saat ini : " << plyr.poinLevelUp << "poin" << endl;
+                plyr.maxExp += 200; 
+
                 cout << "========================================" << endl;
-                plyr.exp = 0;
+                cout << "LEVEL UP!" << endl;
+                cout << "Level Sekarang : " << plyr.lvl << endl;
+                cout << "Mendapatkan 1 Stat Point Tambahan!" << endl;
+                cout << "========================================" << endl;
+
+                recalcStat(plyr);
             }
 
             system("pause");
             system("cls");
 
             monster = randomMonster();
-            monster.maxHp += plyr.lvl * 5;
+            monster.monsterHp += plyr.lvl * 5;
             monster.maxHp = monster.monsterHp;
 
             cout << "========================================" << endl;
@@ -1430,15 +1900,16 @@ void battleMonster(Player &plyr, Monster monster, Skill Spell) {
             cout << "HP Monster   : " << monster.monsterHp << endl;
             cout << "========================================" << endl;
 
-
             system("pause");
             system("cls");
-
 
             continue;
         }
         
         monsterAction(plyr, monster);
+
+        plyr.isDefending = false;
+        monster.isDefending = false;
         
         if(plyr.hp <= 0){
             plyr.hp = 0;
@@ -1452,6 +1923,286 @@ void battleMonster(Player &plyr, Monster monster, Skill Spell) {
             defeatHandling(plyr);
             return;
         }
-        // return battle's code 
     } while(true);
+}
+
+bool showSaveFiles() {
+    string fileName;
+    int no = 0;
+
+    ifstream cekFile("save_list.txt");
+
+    if(!cekFile) {
+        ofstream buatFile("save_list.txt");
+        buatFile.close();
+    }
+
+    cekFile.close();
+
+    ifstream list("save_list.txt");
+
+    cout << "========================================" << endl;
+    cout << "|             SAVE FILES               |" << endl;
+    cout << "========================================" << endl;
+
+    while(getline(list, fileName)) {
+        if(fileName == "") {
+            continue;
+        }
+
+        cout << "[" << no + 1 << "] " << fileName << endl;
+        no++;
+    }
+
+    if(no == 0) {
+        cout << "Belum ada save game!" << endl;
+        cout << "========================================" << endl;
+
+        list.close();
+        return false;
+    }
+
+    cout << "========================================" << endl;
+
+    list.close();
+    return true;
+}
+
+void saveGame(Player &plyr) {
+    string saveName;
+    string fileName;
+
+    cout << "========================================" << endl;
+    cout << "|              SAVE GAME               |" << endl;
+    cout << "========================================" << endl;
+    cout << "Masukkan nama save file : ";
+    cin >> saveName;
+
+    fileName = saveName + ".dat";
+
+    ofstream file(fileName, ios::binary);
+
+    if(!file) {
+        cout << "Gagal membuat save file!" << endl;
+        return;
+    }
+
+    auto writeString = [&](string str) {
+        int len = str.length();
+        file.write((char*)&len, sizeof(len));
+        file.write(str.c_str(), len);
+    };
+
+    writeString(plyr.nama);
+    writeString(plyr.classType);
+
+    file.write((char*)&plyr.exp, sizeof(plyr.exp));
+    file.write((char*)&plyr.lvl, sizeof(plyr.lvl));
+    file.write((char*)&plyr.gold, sizeof(plyr.gold));
+
+    file.write((char*)&plyr.hp, sizeof(plyr.hp));
+    file.write((char*)&plyr.maxHp, sizeof(plyr.maxHp));
+
+    file.write((char*)&plyr.mana, sizeof(plyr.mana));
+    file.write((char*)&plyr.maxMana, sizeof(plyr.maxMana));
+
+    file.write((char*)&plyr.maxExp, sizeof(plyr.maxExp));
+    file.write((char*)&plyr.baseDamage, sizeof(plyr.baseDamage));
+
+    file.write((char*)&plyr.poinLevelUp, sizeof(plyr.poinLevelUp));
+
+    file.write((char*)&plyr.isAlive, sizeof(plyr.isAlive));
+    file.write((char*)&plyr.usingWeapon, sizeof(plyr.usingWeapon));
+    file.write((char*)&plyr.isDefending, sizeof(plyr.isDefending));
+
+    file.write((char*)&plyr.inventoryCount, sizeof(plyr.inventoryCount));
+
+    for(int i = 0; i < plyr.inventoryCount; i++) {
+        writeString(plyr.inv[i].codeItem);
+        writeString(plyr.inv[i].namaItem);
+        writeString(plyr.inv[i].tipeItem);
+
+        file.write((char*)&plyr.inv[i].countItem, sizeof(plyr.inv[i].countItem));
+        file.write((char*)&plyr.inv[i].valueItem, sizeof(plyr.inv[i].valueItem));
+    }
+
+    file.write((char*)&plyr.equipmentCount, sizeof(plyr.equipmentCount));
+
+    for(int i = 0; i < plyr.equipmentCount; i++) {
+        writeString(plyr.equip[i].codeEquipment);
+        writeString(plyr.equip[i].namaEquipment);
+        writeString(plyr.equip[i].scalingTipe);
+
+        file.write((char*)&plyr.equip[i].damageEquipment, sizeof(plyr.equip[i].damageEquipment));
+        file.write((char*)&plyr.equip[i].upgradeLevel, sizeof(plyr.equip[i].upgradeLevel));
+        file.write((char*)&plyr.equip[i].price, sizeof(plyr.equip[i].price));
+
+        writeString(plyr.equip[i].scaling);
+    }
+
+    file.write((char*)&plyr.skillCount, sizeof(plyr.skillCount));
+
+    for(int i = 0; i < plyr.skillCount; i++) {
+        writeString(plyr.skill[i].codeSkill);
+        writeString(plyr.skill[i].namaSkill);
+        writeString(plyr.skill[i].scalingTipe);
+
+        file.write((char*)&plyr.skill[i].damageSkill, sizeof(plyr.skill[i].damageSkill));
+        file.write((char*)&plyr.skill[i].manaCost, sizeof(plyr.skill[i].manaCost));
+        file.write((char*)&plyr.skill[i].price, sizeof(plyr.skill[i].price));
+
+        writeString(plyr.skill[i].scaling);
+    }
+
+    file.write((char*)&plyr.weaponDamage, sizeof(plyr.weaponDamage));
+    file.write((char*)&plyr.skillDamage, sizeof(plyr.skillDamage));
+
+    file.write((char*)&plyr.def, sizeof(plyr.def));
+    file.write((char*)&plyr.vigor, sizeof(plyr.vigor));
+    file.write((char*)&plyr.mind, sizeof(plyr.mind));
+    file.write((char*)&plyr.dexterity, sizeof(plyr.dexterity));
+    file.write((char*)&plyr.strength, sizeof(plyr.strength));
+    file.write((char*)&plyr.inteligence, sizeof(plyr.inteligence));
+
+    file.write((char*)&plyr.equippedWeaponIndex, sizeof(plyr.equippedWeaponIndex));
+
+    file.close();
+
+    ofstream list("save_list.txt", ios::app);
+    list << saveName << endl;
+    list.close();
+
+    cout << "\nGame berhasil disimpan!" << endl;
+    cout << "File : " << fileName << endl;
+
+    system("pause");
+    system("cls");
+}
+
+void loadGame(Player &plyr) {
+    string saveName;
+    string fileName;
+
+    if(!showSaveFiles()) {
+        system("pause");
+        system("cls");
+        return;
+    }
+
+    cout << "Masukkan nama file save: ";
+    cin >> saveName;
+
+    fileName = saveName + ".dat";
+
+    ifstream file(fileName, ios::binary);
+
+    if(!file) {
+        cout << "========================================" << endl;
+        cout << "Save file tidak ditemukan!" << endl;
+        cout << "Kembali ke menu..." << endl;
+        cout << "========================================" << endl;
+
+        system("pause");
+        system("cls");
+        return;
+    }
+
+    auto readString = [&](string &str) {
+        int len;
+        file.read((char*)&len, sizeof(len));
+
+        char *buffer = new char[len + 1];
+
+        file.read(buffer, len);
+        buffer[len] = '\0';
+
+        str = buffer;
+
+        delete[] buffer;
+    };
+
+    readString(plyr.nama);
+    readString(plyr.classType);
+
+    file.read((char*)&plyr.exp, sizeof(plyr.exp));
+    file.read((char*)&plyr.lvl, sizeof(plyr.lvl));
+    file.read((char*)&plyr.gold, sizeof(plyr.gold));
+
+    file.read((char*)&plyr.hp, sizeof(plyr.hp));
+    file.read((char*)&plyr.maxHp, sizeof(plyr.maxHp));
+
+    file.read((char*)&plyr.mana, sizeof(plyr.mana));
+    file.read((char*)&plyr.maxMana, sizeof(plyr.maxMana));
+
+    file.read((char*)&plyr.maxExp, sizeof(plyr.maxExp));
+    file.read((char*)&plyr.baseDamage, sizeof(plyr.baseDamage));
+
+    file.read((char*)&plyr.poinLevelUp, sizeof(plyr.poinLevelUp));
+
+    file.read((char*)&plyr.isAlive, sizeof(plyr.isAlive));
+    file.read((char*)&plyr.usingWeapon, sizeof(plyr.usingWeapon));
+    file.read((char*)&plyr.isDefending, sizeof(plyr.isDefending));
+
+    file.read((char*)&plyr.inventoryCount, sizeof(plyr.inventoryCount));
+
+    for(int i = 0; i < plyr.inventoryCount; i++) {
+        readString(plyr.inv[i].codeItem);
+        readString(plyr.inv[i].namaItem);
+        readString(plyr.inv[i].tipeItem);
+
+        file.read((char*)&plyr.inv[i].countItem, sizeof(plyr.inv[i].countItem));
+        file.read((char*)&plyr.inv[i].valueItem, sizeof(plyr.inv[i].valueItem));
+    }
+
+    file.read((char*)&plyr.equipmentCount, sizeof(plyr.equipmentCount));
+
+    for(int i = 0; i < plyr.equipmentCount; i++) {
+        readString(plyr.equip[i].codeEquipment);
+        readString(plyr.equip[i].namaEquipment);
+        readString(plyr.equip[i].scalingTipe);
+
+        file.read((char*)&plyr.equip[i].damageEquipment, sizeof(plyr.equip[i].damageEquipment));
+        file.read((char*)&plyr.equip[i].upgradeLevel, sizeof(plyr.equip[i].upgradeLevel));
+        file.read((char*)&plyr.equip[i].price, sizeof(plyr.equip[i].price));
+
+        readString(plyr.equip[i].scaling);
+    }
+
+    file.read((char*)&plyr.skillCount, sizeof(plyr.skillCount));
+
+    for(int i = 0; i < plyr.skillCount; i++) {
+        readString(plyr.skill[i].codeSkill);
+        readString(plyr.skill[i].namaSkill);
+        readString(plyr.skill[i].scalingTipe);
+
+        file.read((char*)&plyr.skill[i].damageSkill, sizeof(plyr.skill[i].damageSkill));
+        file.read((char*)&plyr.skill[i].manaCost, sizeof(plyr.skill[i].manaCost));
+        file.read((char*)&plyr.skill[i].price, sizeof(plyr.skill[i].price));
+
+        readString(plyr.skill[i].scaling);
+    }
+
+    file.read((char*)&plyr.weaponDamage, sizeof(plyr.weaponDamage));
+    file.read((char*)&plyr.skillDamage, sizeof(plyr.skillDamage));
+
+    file.read((char*)&plyr.def, sizeof(plyr.def));
+    file.read((char*)&plyr.vigor, sizeof(plyr.vigor));
+    file.read((char*)&plyr.mind, sizeof(plyr.mind));
+    file.read((char*)&plyr.dexterity, sizeof(plyr.dexterity));
+    file.read((char*)&plyr.strength, sizeof(plyr.strength));
+    file.read((char*)&plyr.inteligence, sizeof(plyr.inteligence));
+
+    file.read((char*)&plyr.equippedWeaponIndex, sizeof(plyr.equippedWeaponIndex));
+
+    file.close();
+
+    cout << "========================================" << endl;
+    cout << "Game berhasil di load!" << endl;
+    cout << "Welcome back " << plyr.nama << endl;
+    cout << "========================================" << endl;
+
+    recalcStat(plyr);
+
+    system("pause");
+    townMenu();
 }
