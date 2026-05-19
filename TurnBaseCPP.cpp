@@ -129,9 +129,10 @@ Monster monsterList[5] = {
     {"dmn001", "Demon", 200, 200, 80, 300, 300, 80}
 };
 
-Item shopItem[2] = {
+Item shopItem[3] = {
     {"hp001", "Potion HP", "heal", 1, 500},
-    {"mp001", "Potion Mana", "mana", 1, 1000}
+    {"mp001", "Potion Mana", "mana", 1, 1000},
+    {"up001", "Smiting Stone", "upgrade", 1, 2000}
 };
 
 Player plyr;
@@ -186,12 +187,14 @@ void blacksmithMenu();
 void upgradeWeapon(Player &plyr);
 
 void enterFloor(Player &plyr);
-void battleMonster(Player &plyr, Monster monster, Skill Spell);
+void battleMonster(Player &plyr, Monster monster);
 void monsterAction(Player &plyr, Monster &monster);
+
 
 void useItem(Player &plyr);
 void levelUp(Player &plyr);
 void defeatHandling(Player &plyr);
+void monsterDrop(Player &plyr, Monster monster);
 
 void saveGame(Player &plyr);
 void loadGame(Player &plyr);
@@ -1553,7 +1556,7 @@ void monsterAction(Player &plyr, Monster &monster){
         }
     }
 
-    int damage = monster.monsterDamage;
+    int damage = monster.monsterDamage+(10*plyr.lvl);
 
     if(plyr.isDefending == true){
         damage /= 2;
@@ -1575,6 +1578,24 @@ void monsterAction(Player &plyr, Monster &monster){
     system("pause");
     system("cls");
 }
+void monsterDrop(Player &plyr, Monster monster){
+    int rolldrop;
+    int indexdrop;
+    Item dropitem;
+    rolldrop = rand() % 100;
+    if(rolldrop < 40){
+        indexdrop = rand() %3;
+        dropitem = shopItem[indexdrop];
+        addItem(plyr, dropitem);
+
+        cout << "========================================" << endl;
+        cout << monster.monsterName << " menjatuhkan 1 item!" << endl;
+        cout << "Drop : " << dropitem.namaItem << endl;
+        cout << "========================================" << endl;
+        return;
+    } else {
+        cout << monster.monsterName << " tidak menjatuhkan item." << endl;}
+}
 
 void enterFloor(Player &plyr) {
 
@@ -1592,7 +1613,7 @@ void enterFloor(Player &plyr) {
     system("pause");
     system("cls");
 
-    battleMonster(plyr, monster, spell);
+    battleMonster(plyr, monster);
 }
 
 void skillList(Player &plyr, Monster &monster){
@@ -1790,7 +1811,7 @@ void defeatHandling(Player &plyr){
     recalcStat(plyr);
 }
 
-void battleMonster(Player &plyr, Monster monster, Skill spell) {
+void battleMonster(Player &plyr, Monster monster) {
     int pilihan;
     
     do {
@@ -1871,6 +1892,7 @@ void battleMonster(Player &plyr, Monster monster, Skill spell) {
             plyr.exp += monster.monsterExpDrop;
             plyr.gold += monster.monsterGoldDrop;
             monster.isAlive = false;
+            monsterDrop(plyr, monster);
 
             while(plyr.exp >= plyr.maxExp){
                 plyr.exp -= plyr.maxExp;
@@ -1921,6 +1943,7 @@ void battleMonster(Player &plyr, Monster monster, Skill spell) {
             system("cls");
 
             defeatHandling(plyr);
+            
             return;
         }
     } while(true);
