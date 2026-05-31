@@ -145,6 +145,7 @@ bool ulangChild = false;
 void backMain();
 bool backChildMenu();
 void invalidOption();
+string toLowerCase(string text);
 
 // char feature function
 void startGame();
@@ -196,6 +197,7 @@ void levelUp(Player &plyr);
 void defeatHandling(Player &plyr);
 void monsterDrop(Player &plyr, Monster monster);
 
+bool saveSudahAda(string saveName);
 void saveGame(Player &plyr);
 void loadGame(Player &plyr);
 bool showSaveFiles();
@@ -284,6 +286,13 @@ void invalidOption() {
     cout << "|    Pilihan anda tidak valid          |" << endl;
     cout << "|    Silakan pilih dengan benar        |" << endl;
     cout << "========================================" << endl;
+}
+
+string toLowerCase(string text){
+    for(int i = 0; i < text.length(); i++){
+        text[i] = tolower(text[i]);
+    }
+    return text;
 }
 
 void startGame() {
@@ -835,9 +844,14 @@ void searchWeapon(Player &plyr){
         cout << "========================================" << endl;
         cout << "Masukkan nama / kode weapon : ";
         getline(cin, keyword);
+
+        keyword = toLowerCase(keyword);
     
         for(int i = 0; i < plyr.equipmentCount; i++){
-            if(plyr.equip[i].namaEquipment == keyword || plyr.equip[i].codeEquipment == keyword){
+            string namaLower = toLowerCase(plyr.equip[i].namaEquipment);
+            string kodeLower = toLowerCase(plyr.equip[i].codeEquipment);
+            
+            if(namaLower.find(keyword) != string::npos || kodeLower.find(keyword) != string::npos){
                 int sellPrice = plyr.equip[i].price +  (plyr.equip[i].upgradeLevel * 100);
                 
                 cout << "Weapon ditemukan!" << endl;
@@ -1602,8 +1616,15 @@ void enterFloor(Player &plyr) {
     int randomMonster = rand() % 5;
 
     Monster monster = monsterList[randomMonster];
-    Skill spell;
-    monster.monsterHp += plyr.lvl*5;
+
+    monster.monsterHp += plyr.lvl * 20;
+    monster.maxHp = monster.monsterHp;
+
+    monster.monsterDamage += plyr.lvl * 5;
+
+    monster.monsterExpDrop += plyr.lvl * 25;
+    monster.monsterGoldDrop += plyr.lvl * 15;
+
     cout << "========================================" << endl;
     cout << "Monster muncul!" << endl;
     cout << "Nama Monster : " << monster.monsterName << endl;
@@ -1991,17 +2012,45 @@ bool showSaveFiles() {
     return true;
 }
 
+bool saveSudahAda(string saveName){
+    ifstream file("save_list.txt");
+    string nama;
+
+    while(getline(file, nama)){
+        if(nama == saveName){
+            return true;
+        }
+    }
+    return false;
+}
+
 void saveGame(Player &plyr) {
     string saveName;
     string fileName;
+    char pilih;
 
-    cout << "========================================" << endl;
-    cout << "|              SAVE GAME               |" << endl;
-    cout << "========================================" << endl;
+    if(!showSaveFiles()) {
+        system("pause");
+        system("cls");
+        return;
+    }
+    
     cout << "Masukkan nama save file : ";
     cin >> saveName;
 
     fileName = saveName + ".dat";
+
+    ifstream cek(fileName, ios::binary);
+
+    if(cek){
+        cout << "Save sudah ada!" << endl;
+        cout << "Overwrite save? (y/t) : ";
+        cin >> pilih;
+
+        if(pilih != 'y' && pilih != 'Y'){
+            return;
+        }
+    }
 
     ofstream file(fileName, ios::binary);
 
@@ -2091,9 +2140,11 @@ void saveGame(Player &plyr) {
 
     file.close();
 
-    ofstream list("save_list.txt", ios::app);
-    list << saveName << endl;
-    list.close();
+    if(!saveSudahAda(saveName)){
+        ofstream list("save_list.txt", ios::app);
+        list << saveName << endl;
+        list.close();
+    }
 
     cout << "\nGame berhasil disimpan!" << endl;
     cout << "File : " << fileName << endl;
