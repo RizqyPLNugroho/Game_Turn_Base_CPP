@@ -289,7 +289,7 @@ void invalidOption() {
 }
 
 string toLowerCase(string text){
-    for(int i = 0; i < text.length(); i++){
+    for(size_t i = 0; i < text.length(); i++){
         text[i] = tolower(text[i]);
     }
     return text;
@@ -1311,7 +1311,7 @@ void sellItem(Player &plyr) {
     cout << "========================================" << endl;
     cout << "|             SELL MENU                |" << endl;
     cout << "========================================" << endl;
-    cout << "1. Sell Potion" << endl;
+    cout << "1. Sell Item" << endl;
     cout << "2. Sell Weapon" << endl;
     cout << "========================================" << endl;
     cout << "Pilih : ";
@@ -1492,10 +1492,10 @@ void upgradeWeapon(Player &plyr) {
 
     for(int i = 0; i < plyr.equipmentCount; i++) {
         int biayaUpgrade = 400 + (plyr.equip[i].upgradeLevel * 50);
-        cout << "[" << i + 1 << "] " << weaponList[i].namaEquipment;
+        cout << "[" << i + 1 << "] " << plyr.equip[i].namaEquipment;
         cout << endl;
-        cout << "  Damage   : " << weaponList[i].damageEquipment << endl;
-        cout << "  Scaling  : " << weaponList[i].scaling << " | " << weaponList[i].scalingTipe << endl;
+        cout << "  Damage   : " << plyr.equip[i].damageEquipment << endl;
+        cout << "  Scaling  : " << plyr.equip[i].scaling << " | " << plyr.equip[i].scalingTipe << endl;
         cout << "  Cost     : " << biayaUpgrade << " Gold" << endl;
         cout << "----------------------------------------" << endl;
     }
