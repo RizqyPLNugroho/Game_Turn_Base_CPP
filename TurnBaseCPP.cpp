@@ -519,7 +519,7 @@ void recalcStat(Player &plyr) {
         weapon = plyr.equip[plyr.equippedWeaponIndex];
     }
 
-    plyr.maxHp = 100 + (plyr.vigor * 10);
+    plyr.maxHp = 150 + (plyr.vigor * 10);
     plyr.maxMana = 50 + (plyr.mind * 8);
 
     plyr.hp += (plyr.maxHp - oldMaxHp);
@@ -1037,13 +1037,24 @@ void enterDungeon() {
 
 // list of monster in dungeon
 void aboutMonster(){
+
+
     cout << "========================================" << endl;   
     cout << "|            List of Monster           |" << endl;
     cout << "========================================" << endl; 
     for (int i = 0; i < 5; i++) {
+
+        monsterList[i].monsterHp += plyr.lvl * 20;
+        monsterList[i].maxHp = monsterList[i].monsterHp;
+
+        monsterList[i].monsterDamage += plyr.lvl * 5;
+
+        monsterList[i].monsterExpDrop += plyr.lvl * 25;
+        monsterList[i].monsterGoldDrop += plyr.lvl * 15;
+
         cout << "Nama Monster : " << monsterList[i].monsterName << endl;
         cout << "HP Monster   : " << monsterList[i].monsterHp << endl;
-        cout << "Mana Monster : " << monsterList[i].monsterMana << endl;
+        cout << "Damage Monster : " << monsterList[i].monsterDamage << endl;
         cout << "========================================" << endl; 
     }
 }
