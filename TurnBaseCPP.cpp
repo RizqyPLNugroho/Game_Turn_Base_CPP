@@ -694,65 +694,74 @@ void showAllWeapon(Player &plyr) {
 // show equipment
 void equipmentMenu(Player &plyr) {
     int opsi;
+    bool ulangEquip = false;
 
-    cout << "========================================" << endl; 
-    cout << "|           Equipment Menu             |" << endl;
-    cout << "========================================" << endl; 
-
-    if (plyr.equipmentCount == 0){
-        cout << "Equipment kosong" << endl;
-        return;
-    } 
-
-    if (plyr.usingWeapon) {
-        int weaponIndex = plyr.equippedWeaponIndex;
-
-        int sellPrice = plyr.equip[weaponIndex].price + (plyr.equip[weaponIndex].upgradeLevel * 100);
-
-        cout << "  " << plyr.equip[weaponIndex].namaEquipment << " (Equipped)" << endl;
-        cout << "  Damage   : " << plyr.equip[weaponIndex].damageEquipment << endl;
-        cout << "  Scaling  : " << plyr.equip[weaponIndex].scaling << " | " << plyr.equip[weaponIndex].scalingTipe << endl;
-        cout << "  Level    : " << plyr.equip[weaponIndex].upgradeLevel << endl;
-        cout << "  Price    : " << sellPrice << " Gold" << endl;
-    } else {
-        cout << "  None" << endl;
-    }
-
-    cout << "========================================" << endl;
-
-    cout << "[1] Show All Weapon" << endl;
-    cout << "[2] Equip Weapon" << endl;
-    cout << "[3] Unequip Weapon" << endl;
-    cout << "[4] Search Weapon" << endl;
-    cout << "[5] Keluar" << endl;
-    cout << "========================================" << endl;
-
-    cout << "Masukkan pilihan : ";
-    cin >> opsi;
-
-    switch(opsi){
-        case 1:
-            system("cls");
-            showAllWeapon(plyr);
-            break;
-        case 2:
-            system("cls");
-            equipWeapon(plyr);
-            break;
-        case 3:
-            system("cls");
-            unequipWeapon(plyr);
-            break;
-        case 4:
-            system("cls");
-            searchWeapon(plyr);
-            break;
-        case 5:
-            break;
-        default:
-            cout << "Pilihan tidak valid!" << endl;
-            break;
-    }
+    do {
+        cout << "========================================" << endl; 
+        cout << "|           Equipment Menu             |" << endl;
+        cout << "========================================" << endl; 
+    
+        if (plyr.equipmentCount == 0){
+            cout << "Equipment kosong" << endl;
+            return;
+        } 
+    
+        if (plyr.usingWeapon) {
+            int weaponIndex = plyr.equippedWeaponIndex;
+    
+            int sellPrice = plyr.equip[weaponIndex].price + (plyr.equip[weaponIndex].upgradeLevel * 100);
+    
+            cout << "  " << plyr.equip[weaponIndex].namaEquipment << " (Equipped)" << endl;
+            cout << "  Damage   : " << plyr.equip[weaponIndex].damageEquipment << endl;
+            cout << "  Scaling  : " << plyr.equip[weaponIndex].scaling << " | " << plyr.equip[weaponIndex].scalingTipe << endl;
+            cout << "  Level    : " << plyr.equip[weaponIndex].upgradeLevel << endl;
+            cout << "  Price    : " << sellPrice << " Gold" << endl;
+        } else {
+            cout << "  None" << endl;
+        }
+    
+        cout << "========================================" << endl;
+    
+        cout << "[1] Show All Weapon" << endl;
+        cout << "[2] Equip Weapon" << endl;
+        cout << "[3] Unequip Weapon" << endl;
+        cout << "[4] Search Weapon" << endl;
+        cout << "[5] Keluar" << endl;
+        cout << "========================================" << endl;
+    
+        cout << "Masukkan pilihan : ";
+        cin >> opsi;
+    
+        switch(opsi){
+            case 1:
+                system("cls");
+                showAllWeapon(plyr);
+                ulangEquip = backChildMenu();
+                break;
+            case 2:
+                system("cls");
+                equipWeapon(plyr);
+                ulangEquip = backChildMenu();
+                break;
+            case 3:
+                system("cls");
+                unequipWeapon(plyr);
+                ulangEquip = backChildMenu();
+                break;
+            case 4:
+                system("cls");
+                searchWeapon(plyr);
+                ulangEquip = backChildMenu();
+                break;
+            case 5:
+                ulangEquip = false;
+                break;
+            default:
+                cout << "Pilihan tidak valid!" << endl;
+                break;
+        }
+    } while (ulangEquip == true);
+    
 }
 
 void listWeapon(Player &plyr) {
@@ -924,20 +933,16 @@ void townMenu() {
                 system("cls");
                 showInventory(plyr);
 
-                if (!backChildMenu()) {
-                    backMain(); 
-                    return;
-                }
+                system("pause");
+                system("cls");
                 break;
             case 4:
                 //equipment
                 system("cls");
                 equipmentMenu(plyr);
                 
-                if (!backChildMenu()) {
-                    backMain(); 
-                    return;
-                }
+                system("pause");
+                system("cls");
                 break;
             case 5:
                 system("cls");
@@ -987,7 +992,7 @@ void enterDungeon() {
             case 1:
                 system("cls");
                 enterFloor(plyr);
-                ulangDungeon = backChildMenu(); 
+                // ulangDungeon = backChildMenu(); 
                 break;
             case 2:
                 system("cls");
@@ -1003,7 +1008,7 @@ void enterDungeon() {
                 system("cls");
                 // Code for equipment
                 equipmentMenu(plyr);
-                ulangDungeon = backChildMenu();
+                // ulangDungeon = backChildMenu();
                 break;
             case 5:
                 system("cls");
@@ -1830,21 +1835,25 @@ void useItem(Player &plyr){
 }
 
 void defeatHandling(Player &plyr){
-    cout << "=========================================" << endl;
-    cout << "| " <<plyr.nama << " kalah dalam battle! |" << endl;
-    cout << "Penalty: Kehilangan EXP dan gold farming! |" << endl;
-    cout << "=========================================" << endl;
+    cout << "=============================================" << endl;
+    cout << "| " << plyr.nama << " kalah dalam battle!    |" << endl;
+    cout << "| Penalty: Kehilangan EXP dan gold farming!  |" << endl;
+    cout << "=============================================" << endl;
 
     plyr.exp = 0;
     plyr.gold /= 2;
     plyr.hp = plyr.maxHp;
     plyr.mana = plyr.maxMana;
-    
+
+    system("pause");
+    system("cls");
 }
 
 void battleMonster(Player &plyr, Monster monster) {
     int pilihan;
-    bool ulangFloor=true;
+    bool ulangFloor = true;
+    char kembali;
+
     do {
         int damagePlayer = plyr.weaponDamage;
         cout << "========================================" << endl;
@@ -1907,7 +1916,15 @@ void battleMonster(Player &plyr, Monster monster) {
                 system("cls");
                 break;
             case 6:
-                return;
+                cout << "\nApakah anda ingin kabur (y/t)? ";
+                cin >> kembali;
+                system("cls");
+
+                if (kembali == 'y' || kembali == 'Y') {
+                    return;
+                } else {
+                    continue;
+                }
                 break;
             default:
                 cout << "Pilihan tidak valid!" << endl;
