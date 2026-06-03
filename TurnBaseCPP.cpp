@@ -987,7 +987,7 @@ void enterDungeon() {
             case 1:
                 system("cls");
                 enterFloor(plyr);
-                ulangDungeon = backChildMenu();
+                ulangDungeon = backChildMenu(); 
                 break;
             case 2:
                 system("cls");
@@ -1037,8 +1037,6 @@ void enterDungeon() {
 
 // list of monster in dungeon
 void aboutMonster(){
-
-
     cout << "========================================" << endl;   
     cout << "|            List of Monster           |" << endl;
     cout << "========================================" << endl; 
@@ -1627,8 +1625,8 @@ void enterFloor(Player &plyr) {
     int randomMonster = rand() % 5;
 
     Monster monster = monsterList[randomMonster];
-
-    monster.monsterHp += plyr.lvl * 20;
+    
+    monster.monsterHp += plyr.lvl * 10;
     monster.maxHp = monster.monsterHp;
 
     monster.monsterDamage += plyr.lvl * 5;
@@ -1839,13 +1837,14 @@ void defeatHandling(Player &plyr){
 
     plyr.exp = 0;
     plyr.gold /= 2;
-
-    recalcStat(plyr);
+    plyr.hp = plyr.maxHp;
+    plyr.mana = plyr.maxMana;
+    
 }
 
 void battleMonster(Player &plyr, Monster monster) {
     int pilihan;
-    
+    bool ulangFloor=true;
     do {
         int damagePlayer = plyr.weaponDamage;
         cout << "========================================" << endl;
@@ -1960,10 +1959,12 @@ void battleMonster(Player &plyr, Monster monster) {
             continue;
         }
         
+        monster.isDefending = false;
+
         monsterAction(plyr, monster);
 
         plyr.isDefending = false;
-        monster.isDefending = false;
+        
         
         if(plyr.hp <= 0){
             plyr.hp = 0;
@@ -1978,7 +1979,7 @@ void battleMonster(Player &plyr, Monster monster) {
             
             return;
         }
-    } while(true);
+    } while(ulangFloor == true);
 }
 
 bool showSaveFiles() {
